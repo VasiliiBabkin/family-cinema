@@ -285,7 +285,11 @@ fun FilmDetails(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
     var confirmation by remember { mutableStateOf(false) }
     var technical by remember { mutableStateOf(false) }
     val body: @Composable ColumnScope.() -> Unit = {
-        Text(stringResource(R.string.demo_title), style = MaterialTheme.typography.headlineLarge)
+        if (!tv)
+            Text(
+                stringResource(R.string.demo_title),
+                style = MaterialTheme.typography.headlineLarge,
+            )
         Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             listOf(
                     stringResource(R.string.film_age, model.film.age),
@@ -306,7 +310,7 @@ fun FilmDetails(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
                 }
         }
         Text(
-            stringResource(R.string.demo_description),
+            stringResource(if (tv) R.string.demo_notice else R.string.demo_description),
             style = MaterialTheme.typography.bodyLarge,
             color = MaterialTheme.colorScheme.onSurfaceVariant,
         )
@@ -329,11 +333,12 @@ fun FilmDetails(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
             ) {
                 confirmation = true
             }
-            Text(
-                stringResource(R.string.review_hint),
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-            )
+            if (!tv)
+                Text(
+                    stringResource(R.string.review_hint),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                )
             TextButton(onClick = { technical = !technical }, modifier = Modifier.cinemaFocus()) {
                 Icon(Icons.Rounded.Info, null)
                 Spacer(Modifier.width(8.dp))
@@ -341,6 +346,10 @@ fun FilmDetails(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
                 Icon(if (technical) Icons.Rounded.ExpandLess else Icons.Rounded.ExpandMore, null)
             }
             if (technical) {
+                if (tv) {
+                    Text(stringResource(R.string.demo_description))
+                    Text(stringResource(R.string.review_hint))
+                }
                 Text(
                     stringResource(R.string.version_label, model.film.version.id),
                     style = MaterialTheme.typography.bodySmall,
@@ -356,14 +365,17 @@ fun FilmDetails(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
     if (wide)
         Row(
             Modifier.fillMaxSize()
-                .verticalScroll(rememberScrollState())
-                .padding(if (tv) 40.dp else 28.dp),
+                .padding(
+                    horizontal = if (tv) 40.dp else 28.dp,
+                    vertical = if (tv) 24.dp else 28.dp,
+                ),
             horizontalArrangement = Arrangement.spacedBy(32.dp),
+            verticalAlignment = if (tv) Alignment.CenterVertically else Alignment.Top,
         ) {
             FilmPoster(Modifier.weight(1f).height(if (tv) 350.dp else 400.dp))
             Column(
-                Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(14.dp),
+                Modifier.weight(1f).verticalScroll(rememberScrollState()),
+                verticalArrangement = Arrangement.spacedBy(if (tv) 10.dp else 14.dp),
                 content = body,
             )
         }

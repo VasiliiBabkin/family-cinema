@@ -34,6 +34,7 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. Один universal target дл
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb shell am instrument -w -e layout phone \
+  -e class ru.familycinema.app.FamilyFlowTest \
   ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
 ```
 

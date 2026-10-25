@@ -17,6 +17,15 @@ class UpgradeSeedTest {
         store.setPin("2468")
         store.approve(DemoCatalog.films().first(), true)
         store.savePosition("quiet-evening", 12345L)
+        // This fixture has no Activity.onStop to flush the old version's apply().
+        assertTrue(
+            context
+                .getSharedPreferences("family_private", 0)
+                .edit()
+                .putBoolean("upgrade_fixture_ready", true)
+                .commit()
+        )
+        assertEquals(12345L, store.position("quiet-evening"))
         assertTrue(store.hasPin)
         assertTrue(store.approved(DemoCatalog.films().first()))
     }
