@@ -1,15 +1,16 @@
 name: Проверка и APK
+# Запуск только вручную: обычные коммиты и PR не расходуют Actions.
 on:
-  push:
-    paths-ignore: ['**.md', 'docs/**']
-  pull_request:
-    paths-ignore: ['**.md', 'docs/**']
   workflow_dispatch:
+concurrency:
+  group: family-cinema-manual-check
+  cancel-in-progress: true
 permissions:
   contents: read
 jobs:
   android:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-java@v4
@@ -61,6 +62,7 @@ jobs:
           path: artifacts/
   backend:
     runs-on: ubuntu-latest
+    timeout-minutes: 15
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-python@v5
