@@ -204,21 +204,24 @@ private val Gold=Color(0xFFF5C678)
   Text(if(verified==false) "Видео повреждено или изменилось. Просмотр заблокирован." else "Проверяем видео…")
   Action("К карточке",onBack)
  } else {
-  val player=remember(film.id) { Playback.create(context,film.version.uri,store.position(film.id)) }
+  var player by remember { mutableStateOf<androidx.media3.exoplayer.ExoPlayer?>(null) }
   val owner=LocalLifecycleOwner.current
-  DisposableEffect(player,owner) {
-   val observer=LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_STOP) {store.savePosition(film.id,player.currentPosition);player.pause()} }
+  DisposableEffect(film.id,owner) {
+   val activePlayer=Playback.create(context,film.version.uri,store.position(film.id))
+   player=activePlayer
+   val observer=LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_STOP) {store.savePosition(film.id,activePlayer.currentPosition);activePlayer.pause()} }
    val listener=object:Player.Listener {
     override fun onPlayerError(e: PlaybackException) { error="Не удалось воспроизвести видео. Вернитесь к карточке и повторите попытку." }
     override fun onPlaybackStateChanged(state:Int) { if(state==Player.STATE_ENDED) store.savePosition(film.id,0) }
    }
-   player.addListener(listener);owner.lifecycle.addObserver(observer)
-   onDispose { store.savePosition(film.id,if(player.playbackState==Player.STATE_ENDED) 0 else player.currentPosition);owner.lifecycle.removeObserver(observer);player.removeListener(listener);player.release() }
+   activePlayer.addListener(listener);owner.lifecycle.addObserver(observer)
+   onDispose { store.savePosition(film.id,if(activePlayer.playbackState==Player.STATE_ENDED) 0 else activePlayer.currentPosition);owner.lifecycle.removeObserver(observer);activePlayer.removeListener(listener);activePlayer.release();player=null }
   }
+  val activePlayer=player
   Column(Modifier.fillMaxSize()) {
    Row(Modifier.padding(16.dp),horizontalArrangement=Arrangement.spacedBy(16.dp)) { Action("К карточке",onBack);Text(film.title,modifier=Modifier.align(Alignment.CenterVertically)) }
    if(error.isNotEmpty()) Text(error,Modifier.padding(24.dp))
-   AndroidView(factory={ PlayerView(it).apply { this.player=player;useController=true;controllerAutoShow=true;setShowSubtitleButton(false);requestFocus() } },modifier=Modifier.fillMaxWidth().weight(1f),onRelease={it.player=null})
+   AndroidView(factory={ PlayerView(it).apply { this.player=activePlayer;useController=true;controllerAutoShow=true;setShowSubtitleButton(false);requestFocus() } },modifier=Modifier.fillMaxWidth().weight(1f),onRelease={it.player=null})
   }
  }
 }
