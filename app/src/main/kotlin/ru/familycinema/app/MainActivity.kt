@@ -4,6 +4,9 @@ import android.app.UiModeManager
 import android.content.Context
 import android.content.res.Configuration
 import android.os.Bundle
+import android.content.pm.ActivityInfo
+import androidx.core.view.WindowInsetsCompat
+import androidx.core.view.WindowInsetsControllerCompat
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.BackHandler
 import androidx.activity.compose.setContent
@@ -71,8 +74,24 @@ private val Gold=Color(0xFFF5C678)
  val film=remember { DemoCatalog.films().first() }
  val approved=remember(revision) { store.approved(film) }
  val dark=parent || screen=="pin" || screen=="player"
+ val activity=context as? ComponentActivity
+ DisposableEffect(screen,tv,activity) {
+  if(screen=="player" && activity!=null) {
+   if(!tv) activity.requestedOrientation=ActivityInfo.SCREEN_ORIENTATION_SENSOR_LANDSCAPE
+   WindowInsetsControllerCompat(activity.window,activity.window.decorView).apply {
+    systemBarsBehavior=WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+    hide(WindowInsetsCompat.Type.systemBars())
+   }
+  }
+  onDispose {
+   if(screen=="player" && activity!=null) {
+    WindowInsetsControllerCompat(activity.window,activity.window.decorView).show(WindowInsetsCompat.Type.systemBars())
+    if(!tv) activity.requestedOrientation=ActivityInfo.SCREEN_ORIENTATION_UNSPECIFIED
+   }
+  }
+ }
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=Gold,background=Ink,surface=Color(0xFF22334D)) else lightColorScheme(primary=Color(0xFF395648),background=Color(0xFFFFF5E5),surface=Color(0xFFFFE9C6))) {
-  Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
+  Surface(if(screen=="player") Modifier.fillMaxSize() else Modifier.fillMaxSize().safeDrawingPadding()) {
    BackHandler(screen!="catalog") { screen=if(screen=="player") "details" else "catalog" }
    if(screen=="player") {
     if(parent || approved) VideoScreen(film,store) { screen="details" } else LaunchedEffect(Unit) { screen="catalog" }
@@ -222,10 +241,18 @@ private val Gold=Color(0xFFF5C678)
    }
   }
   val activePlayer=player
-  Column(Modifier.fillMaxSize()) {
-   Row(Modifier.padding(16.dp),horizontalArrangement=Arrangement.spacedBy(16.dp)) { Action("К карточке",onBack);Text(film.title,modifier=Modifier.align(Alignment.CenterVertically)) }
-   if(error.isNotEmpty()) Text(error,Modifier.padding(24.dp))
-   AndroidView(factory={ PlayerView(it).apply { this.player=activePlayer;useController=true;controllerAutoShow=true;setShowSubtitleButton(false);requestFocus() } },modifier=Modifier.fillMaxWidth().weight(1f),update={it.player=activePlayer},onRelease={it.player=null})
+  Box(Modifier.fillMaxSize().background(Color.Black)) {
+   AndroidView(factory={ PlayerView(it).apply {
+    this.player=activePlayer
+    useController=true
+    controllerAutoShow=true
+    controllerShowTimeoutMs=3500
+    setShowSubtitleButton(false)
+    resizeMode=androidx.media3.ui.AspectRatioFrameLayout.RESIZE_MODE_FIT
+    requestFocus()
+   } },modifier=Modifier.fillMaxSize(),update={it.player=activePlayer},onRelease={it.player=null})
+   if(error.isNotEmpty()) Text(error,Modifier.align(Alignment.TopCenter).padding(24.dp),color=Color.White)
+   TextButton(onClick=onBack,modifier=Modifier.align(Alignment.TopStart).padding(12.dp),colors=ButtonDefaults.textButtonColors(contentColor=Color.White)) { Text("‹ К фильму") }
   }
  }
 }
