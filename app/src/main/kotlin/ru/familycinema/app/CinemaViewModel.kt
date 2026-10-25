@@ -47,6 +47,15 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
     var parent by mutableStateOf(false)
         private set
 
+    var autoApprove by mutableStateOf(store.autoApprove)
+        private set
+
+    fun setAutoApprove(value: Boolean) {
+        if (!parent) return
+        store.autoApprove = value
+        autoApprove = store.autoApprove
+    }
+
     var approved by mutableStateOf(store.approved(film))
         private set
 
