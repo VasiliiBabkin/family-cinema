@@ -1,3 +1,5 @@
+> **Superseded for architecture:** This document originally assumed a mandatory PostgreSQL/backend deployment. The accepted design is Android-first with no mandatory server. See [ARCHITECTURE_ANDROID_FIRST_V03.md](ARCHITECTURE_ANDROID_FIRST_V03.md). Treat PostgreSQL and backend authorization tasks below as optional future integrations, not release gates.
+
 # Integrated implementation gate — Family Cinema 0.3
 
 This is a single integrated engineering gate, not permission to claim all features shipped.
