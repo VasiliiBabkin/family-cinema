@@ -221,7 +221,7 @@ private val Gold=Color(0xFFF5C678)
   Column(Modifier.fillMaxSize()) {
    Row(Modifier.padding(16.dp),horizontalArrangement=Arrangement.spacedBy(16.dp)) { Action("К карточке",onBack);Text(film.title,modifier=Modifier.align(Alignment.CenterVertically)) }
    if(error.isNotEmpty()) Text(error,Modifier.padding(24.dp))
-   AndroidView(factory={ PlayerView(it).apply { this.player=activePlayer;useController=true;controllerAutoShow=true;setShowSubtitleButton(false);requestFocus() } },modifier=Modifier.fillMaxWidth().weight(1f),onRelease={it.player=null})
+   AndroidView(factory={ PlayerView(it).apply { this.player=activePlayer;useController=true;controllerAutoShow=true;setShowSubtitleButton(false);requestFocus() } },modifier=Modifier.fillMaxWidth().weight(1f),update={it.player=activePlayer},onRelease={it.player=null})
   }
  }
 }
