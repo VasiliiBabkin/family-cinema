@@ -1,0 +1,14 @@
+*.iml
+.gradle/
+**/build/
+local.properties
+*.jks
+*.keystore
+.env
+.venv/
+__pycache__/
+.pytest_cache/
+artifacts/
+app/src/main/assets/*.mp4
+
+.kotlin/

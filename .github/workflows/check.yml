@@ -1,0 +1,74 @@
+name: Проверка и APK
+# Запуск только вручную: обычные коммиты и PR не расходуют Actions.
+on:
+  workflow_dispatch:
+concurrency:
+  group: family-cinema-manual-check
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: android-actions/setup-android@v3
+        with:
+          packages: 'platform-tools platforms;android-35 build-tools;34.0.0'
+          log-accepted-android-sdk-licenses: false
+      - uses: gradle/actions/setup-gradle@v4
+        with:
+          gradle-version: '8.10.2'
+      - run: sudo apt-get update && sudo apt-get install -y ffmpeg fonts-dejavu-core
+      - run: gradle --max-workers=2 :app:assembleDebug :app:assembleDebugAndroidTest :domain:test :parental:testDebugUnitTest :app:lintDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          retention-days: 7
+          name: family-cinema-debug
+          path: |
+            app/build/outputs/apk/debug/*.apk
+            app/build/reports/
+            domain/build/test-results/
+            parental/build/test-results/
+      - name: Enable KVM
+        run: sudo chmod 666 /dev/kvm
+      - name: Mobile end-to-end on Android 30
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 30
+          target: default
+          arch: x86_64
+          profile: pixel_2
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          disable-animations: true
+          script: |
+            mkdir -p artifacts
+            adb install -r app/build/outputs/apk/debug/app-debug.apk
+            adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+            adb shell pm clear ru.familycinema.app
+            adb shell am instrument -w ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner | tee artifacts/instrumentation.txt
+            grep -q 'OK (1 test)' artifacts/instrumentation.txt
+            adb exec-out run-as ru.familycinema.app cat files/parent.png > artifacts/parent.png
+            adb exec-out run-as ru.familycinema.app cat files/child-catalog.png > artifacts/child-catalog.png
+            adb exec-out run-as ru.familycinema.app cat files/player.png > artifacts/player.png
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          retention-days: 7
+          name: family-cinema-device-qa
+          path: artifacts/
+  backend:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - run: pip install -r backend/requirements.txt
+      - run: cd backend && python -m pytest -q
