@@ -116,6 +116,7 @@ fun TvParentCatalog(model: CinemaViewModel) {
         Column(Modifier.weight(1.2f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             FilmPoster(Modifier.fillMaxWidth().height(210.dp))
             ApprovalBadge(model.approved)
+            ru.familycinema.app.library.LibraryEntry(model, true)
             AutoApprovalSetting(model)
             CinemaAction(
                 stringResource(R.string.open_film),

@@ -10,6 +10,19 @@ import androidx.activity.viewModels
 class MainActivity : ComponentActivity() {
     val cinema: CinemaViewModel by viewModels()
 
+    private val filePicker =
+        registerForActivityResult(
+            androidx.activity.result.contract.ActivityResultContracts.OpenDocument()
+        ) { uri ->
+            cinema.acceptPickedFile(uri)
+        }
+
+    fun chooseVideo(title: String, age: Int?, series: Boolean, season: Int, number: Int) {
+        if (!cinema.parent) return
+        cinema.prepareImport(title, age, series, season, number)
+        filePicker.launch(arrayOf("video/*"))
+    }
+
     override fun attachBaseContext(base: Context) {
         val configuration =
             Configuration(base.resources.configuration).apply { setLocale(java.util.Locale("ru")) }

@@ -22,6 +22,7 @@ class FamilyFlowTest {
     private val clean =
         object : ExternalResource() {
             override fun before() {
+                kotlinx.coroutines.runBlocking(kotlinx.coroutines.Dispatchers.IO) { ru.familycinema.app.library.CinemaDatabase.get(InstrumentationRegistry.getInstrumentation().targetContext).clearAllTables() }
                 InstrumentationRegistry.getInstrumentation()
                     .targetContext
                     .getSharedPreferences("family_private", 0)

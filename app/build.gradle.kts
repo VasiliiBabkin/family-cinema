@@ -1,7 +1,7 @@
 import java.security.MessageDigest
-plugins { id("com.android.application"); kotlin("android"); id("org.jetbrains.kotlin.plugin.compose") }
+plugins { id("com.google.devtools.ksp"); id("com.android.application"); kotlin("android"); id("org.jetbrains.kotlin.plugin.compose") }
 android { namespace = "ru.familycinema.app"; compileSdk = 35
- defaultConfig { minSdk = 26; applicationId = "ru.familycinema.app"; targetSdk = 35; versionCode = 2; versionName = "0.2.0"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { minSdk = 26; applicationId = "ru.familycinema.app"; targetSdk = 35; versionCode = 3; versionName = "0.3.0"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
  bundle { language { enableSplit = false } }
  buildFeatures { compose = true }; sourceSets["main"].java.srcDir(layout.buildDirectory.dir("generated/demo"))
@@ -40,3 +40,15 @@ dependencies {
  androidTestImplementation("androidx.test:runner:1.6.2")
  debugImplementation("androidx.compose.ui:ui-test-manifest")
 }
+
+ksp { arg("room.schemaLocation", "$projectDir/schemas") }
+dependencies {
+ implementation("androidx.room:room-runtime:2.7.2")
+ implementation("androidx.room:room-ktx:2.7.2")
+ ksp("androidx.room:room-compiler:2.7.2")
+ implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
+ implementation("io.coil-kt:coil-compose:2.7.0")
+ androidTestImplementation("androidx.room:room-testing:2.7.2")
+}
+
+android { sourceSets["androidTest"].assets.srcDir("schemas"); sourceSets["androidTest"].assets.srcDir("src/main/assets") }

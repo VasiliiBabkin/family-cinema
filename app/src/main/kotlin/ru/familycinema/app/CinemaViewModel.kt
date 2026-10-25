@@ -6,12 +6,10 @@ import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
-import java.security.MessageDigest
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import ru.familycinema.domain.Film
 import ru.familycinema.parental.FamilyStore
 import ru.familycinema.player.Playback
 
@@ -28,6 +26,10 @@ enum class Screen {
     PIN,
     DETAILS,
     PLAYER,
+    LIBRARY,
+    SOURCES,
+    POLICY,
+    WORK,
 }
 
 enum class PinError {
@@ -40,20 +42,20 @@ enum class PinError {
 
 class CinemaViewModel(application: Application) : AndroidViewModel(application) {
     val store = FamilyStore(application)
-    val film: Film = DemoCatalog.films().first()
+    var film by mutableStateOf(DemoCatalog.films().first())
+        private set
+
     var screen by mutableStateOf(if (store.hasPin) Screen.CHILD else Screen.PIN)
         private set
 
     var parent by mutableStateOf(false)
         private set
 
-    var autoApprove by mutableStateOf(store.autoApprove)
-        private set
+    val autoApprove
+        get() = library.profile.autoApprove
 
     fun setAutoApprove(value: Boolean) {
-        if (!parent) return
-        store.autoApprove = value
-        autoApprove = store.autoApprove
+        if (parent) library.setPolicy(library.profile.ageLimit, value)
     }
 
     var approved by mutableStateOf(store.approved(film))
@@ -164,6 +166,91 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
         private set
 
     private var opening: kotlinx.coroutines.Job? = null
+    private var libraryPlayback = false
+    val library =
+        ru.familycinema.app.library.LibraryController(application, viewModelScope, { parent }) {
+            selected,
+            allowed,
+            saved ->
+            if (parent || allowed) {
+                film = selected
+                approved = allowed
+                position = saved
+                store.savePosition(film.id, saved)
+                libraryPlayback = true
+                play()
+            }
+        }
+
+    fun openLibrary(target: Screen = Screen.LIBRARY) {
+        if (target != Screen.LIBRARY && !parent) return
+        screen = target
+        library.reload()
+        library.updateHistoryIndex()
+    }
+
+    fun openWork(work: ru.familycinema.app.library.Work) {
+        library.select(work)
+        screen = Screen.WORK
+    }
+
+    private data class PendingImport(
+        val title: String,
+        val age: Int?,
+        val series: Boolean,
+        val season: Int,
+        val number: Int,
+        val started: Long,
+    )
+
+    private var pendingImport: PendingImport? = null
+    private var pickedUri: android.net.Uri? = null
+
+    fun prepareImport(title: String, age: Int?, series: Boolean, season: Int, number: Int) {
+        if (parent)
+            pendingImport =
+                PendingImport(
+                    title,
+                    age,
+                    series,
+                    season,
+                    number,
+                    android.os.SystemClock.elapsedRealtime(),
+                )
+    }
+
+    fun acceptPickedFile(uri: android.net.Uri?) {
+        if (uri == null || pendingImport == null) {
+            pendingImport = null
+            return
+        }
+        pickedUri = uri
+        if (parent) finishImport() else openParents()
+    }
+
+    private fun finishImport() {
+        val request = pendingImport ?: return
+        val uri = pickedUri ?: return
+        pendingImport = null
+        pickedUri = null
+        if (!parent || android.os.SystemClock.elapsedRealtime() - request.started > 300000) return
+        library.import(
+            uri,
+            request.title,
+            request.age,
+            request.series,
+            request.season,
+            request.number,
+        )
+        screen = Screen.SOURCES
+    }
+
+    private fun resetDemo() {
+        libraryPlayback = false
+        film = DemoCatalog.films().first()
+        approved = store.approved(film)
+        position = store.position(film.id)
+    }
 
     fun openParents() {
         clearPin()
@@ -172,6 +259,8 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun childMode() {
         closePlayer()
+        library.lock()
+        resetDemo()
         parent = false
         clearPin()
         screen = Screen.CHILD
@@ -185,14 +274,25 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
         when (screen) {
             Screen.PLAYER -> {
                 closePlayer()
-                screen = if (parent || approved) Screen.DETAILS else Screen.CHILD
+                screen =
+                    if (libraryPlayback) Screen.WORK
+                    else if (parent || approved) Screen.DETAILS else Screen.CHILD
             }
             Screen.DETAILS -> screen = if (parent) Screen.PARENT else Screen.CHILD
             Screen.PIN -> {
+                pendingImport = null
+                pickedUri = null
                 clearPin()
                 screen = Screen.CHILD
             }
             Screen.PARENT -> childMode()
+            Screen.WORK -> screen = Screen.LIBRARY
+            Screen.SOURCES,
+            Screen.POLICY -> screen = Screen.PARENT
+            Screen.LIBRARY -> {
+                resetDemo()
+                screen = if (parent) Screen.PARENT else Screen.CHILD
+            }
             Screen.CHILD -> Unit
         }
     }
@@ -201,6 +301,10 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
         if (!parent) return
         store.approve(film, value)
         approved = store.approved(film)
+        viewModelScope.launch {
+            library.repo.syncDemo(value)
+            library.refresh()
+        }
     }
 
     fun digit(value: String) {
@@ -259,6 +363,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
                 if (foreground && screen == Screen.PIN) {
                     parent = true
                     screen = Screen.PARENT
+                    finishImport()
                 }
             } else {
                 store.failedAttempts++
@@ -281,26 +386,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
         opening?.cancel()
         opening =
             viewModelScope.launch {
-                val verified =
-                    withContext(Dispatchers.IO) {
-                        runCatching {
-                                val digest = MessageDigest.getInstance("SHA-256")
-                                getApplication<Application>()
-                                    .assets
-                                    .open("quiet-evening.mp4")
-                                    .use { input ->
-                                        val bytes = ByteArray(8192)
-                                        while (true) {
-                                            val count = input.read(bytes)
-                                            if (count < 0) break
-                                            digest.update(bytes, 0, count)
-                                        }
-                                    }
-                                digest.digest().joinToString("") { "%02x".format(it) } ==
-                                    film.version.sha256
-                            }
-                            .getOrDefault(false)
-                    }
+                val verified = runCatching { library.repo.verifyFilm(film) }.getOrDefault(false)
                 if (!verified) {
                     verificationFailed = true
                     return@launch
@@ -367,6 +453,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
                 else it.currentPosition.coerceAtLeast(0)
         }
         store.savePosition(film.id, position)
+        library.checkpoint(film.id, position)
     }
 
     private fun closePlayer() {
@@ -384,6 +471,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
     fun onBackground(changingConfiguration: Boolean) {
         if (changingConfiguration) return
         foreground = false
+        library.lock(clearSelection = parent)
         checkpoint()
         player?.pause()
         controlsTimer?.cancel()
@@ -392,6 +480,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
         if (parent) {
             parent = false
             closePlayer()
+            resetDemo()
             screen = Screen.CHILD
         }
     }

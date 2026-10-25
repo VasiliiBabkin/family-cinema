@@ -59,8 +59,14 @@ fun CinemaApp(model: CinemaViewModel) {
                         },
                         navigationIcon = {
                             if (
-                                model.screen == Screen.DETAILS ||
-                                    model.screen == Screen.PIN && model.store.hasPin
+                                model.screen in
+                                    listOf(
+                                        Screen.DETAILS,
+                                        Screen.LIBRARY,
+                                        Screen.WORK,
+                                        Screen.SOURCES,
+                                        Screen.POLICY,
+                                    ) || model.screen == Screen.PIN && model.store.hasPin
                             )
                                 IconButton(
                                     onClick = model::back,
@@ -74,6 +80,15 @@ fun CinemaApp(model: CinemaViewModel) {
                         },
                         actions = {
                             if (model.screen != Screen.PIN) {
+                                IconButton(
+                                    onClick = { model.openLibrary() },
+                                    modifier = Modifier.testTag("library_open").cinemaFocus(),
+                                ) {
+                                    Icon(
+                                        Icons.Rounded.VideoLibrary,
+                                        stringResource(R.string.library_title),
+                                    )
+                                }
                                 if (model.parent)
                                     IconButton(
                                         onClick = model::childMode,
@@ -139,6 +154,10 @@ fun CinemaApp(model: CinemaViewModel) {
                             Screen.PARENT -> ParentCatalog(model, tv)
                             Screen.PIN -> PinScreen(model, tv)
                             Screen.DETAILS -> FilmDetails(model, wide, tv)
+                            Screen.LIBRARY,
+                            Screen.SOURCES,
+                            Screen.POLICY,
+                            Screen.WORK -> ru.familycinema.app.library.LibraryUi(model, wide, tv)
                             Screen.PLAYER -> Unit
                         }
                     }

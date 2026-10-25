@@ -51,6 +51,10 @@ fun FilmPoster(modifier: Modifier = Modifier, title: Boolean = true) {
 
 @Composable
 fun ChildCatalog(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
+    if (model.library.works.any { it.id != "demo" }) {
+        ru.familycinema.app.library.LibraryUi(model, wide, tv)
+        return
+    }
     if (tv) {
         TvChildCatalog(model)
         return
@@ -246,6 +250,7 @@ fun ParentCatalog(model: CinemaViewModel, tv: Boolean) {
                 modifier = Modifier.weight(1f),
             )
         }
+        ru.familycinema.app.library.LibraryEntry(model, true)
         AutoApprovalSetting(model)
         Text(
             stringResource(R.string.security_note),
@@ -434,12 +439,23 @@ fun FilmDetails(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
 fun AutoApprovalSetting(model: CinemaViewModel) {
     if (!model.parent) return
     var confirmEnable by remember { mutableStateOf(false) }
-    Card(colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)) {
-        Column(Modifier.fillMaxWidth().padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
+    Card(
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+    ) {
+        Column(
+            Modifier.fillMaxWidth().padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Column(Modifier.weight(1f)) {
-                    Text(stringResource(R.string.auto_approval_title), style = MaterialTheme.typography.titleMedium)
-                    Text(stringResource(R.string.auto_approval_description), style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        stringResource(R.string.auto_approval_title),
+                        style = MaterialTheme.typography.titleMedium,
+                    )
+                    Text(
+                        stringResource(R.string.auto_approval_description),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
                 }
                 Switch(
                     checked = model.autoApprove,
@@ -449,7 +465,10 @@ fun AutoApprovalSetting(model: CinemaViewModel) {
                     modifier = Modifier.testTag("auto_approval_switch"),
                 )
             }
-            Text(stringResource(R.string.auto_approval_scope), style = MaterialTheme.typography.bodySmall)
+            Text(
+                stringResource(R.string.auto_approval_scope),
+                style = MaterialTheme.typography.bodySmall,
+            )
         }
     }
     if (confirmEnable) {
@@ -458,10 +477,14 @@ fun AutoApprovalSetting(model: CinemaViewModel) {
             title = { Text(stringResource(R.string.auto_approval_confirm_title)) },
             text = { Text(stringResource(R.string.auto_approval_confirm_body)) },
             confirmButton = {
-                TextButton(onClick = {
-                    model.setAutoApprove(true)
-                    confirmEnable = false
-                }) { Text(stringResource(R.string.auto_approval_enable)) }
+                TextButton(
+                    onClick = {
+                        model.setAutoApprove(true)
+                        confirmEnable = false
+                    }
+                ) {
+                    Text(stringResource(R.string.auto_approval_enable))
+                }
             },
             dismissButton = {
                 TextButton(onClick = { confirmEnable = false }) {

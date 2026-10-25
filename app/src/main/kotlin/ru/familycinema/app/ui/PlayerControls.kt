@@ -64,7 +64,7 @@ fun PlayerControls(model: CinemaViewModel, playing: Boolean, tv: Boolean) {
                     )
                 }
                 Text(
-                    stringResource(R.string.demo_title),
+                    model.film.title,
                     color = Color.White,
                     style = MaterialTheme.typography.titleMedium,
                 )

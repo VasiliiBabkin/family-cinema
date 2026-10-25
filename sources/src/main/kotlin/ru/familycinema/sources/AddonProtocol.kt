@@ -46,10 +46,11 @@ class AddonEndpoint private constructor(val base: URI) {
 
     fun resource(vararg segments: String): URI {
         require(segments.isNotEmpty())
-        val path = segments.joinToString("/") {
-            require(it.isNotBlank() && it != "." && it != "..")
-            URLEncoder.encode(it, StandardCharsets.UTF_8).replace("+", "%20")
-        }
+        val path =
+            segments.joinToString("/") {
+                require(it.isNotBlank() && it != "." && it != "..")
+                URLEncoder.encode(it, StandardCharsets.UTF_8).replace("+", "%20")
+            }
         return base.resolve(path)
     }
 }
@@ -59,17 +60,17 @@ interface AddonTransport {
 }
 
 /**
- * Read-only Stremio addon protocol client.
- * Does not load arbitrary manifest URLs, download streams, or start BitTorrent.
- * Transport must independently enforce redirect, DNS/IP, response-size and timeout policy.
+ * Read-only Stremio addon protocol client. Does not load arbitrary manifest URLs, download streams,
+ * or start BitTorrent. Transport must independently enforce redirect, DNS/IP, response-size and
+ * timeout policy.
  */
 class AddonProtocol(
     private val sourceId: String,
     private val endpoint: AddonEndpoint,
     private val transport: AddonTransport,
 ) {
-    private fun JsonElement.obj(): JsonObject = this as? JsonObject
-        ?: throw IllegalArgumentException("Expected JSON object")
+    private fun JsonElement.obj(): JsonObject =
+        this as? JsonObject ?: throw IllegalArgumentException("Expected JSON object")
 
     private fun JsonObject.string(key: String): String? =
         (this[key] as? JsonPrimitive)?.takeIf { it.isString }?.content
@@ -77,10 +78,15 @@ class AddonProtocol(
     suspend fun search(type: String, catalogId: String, query: String): List<AddonCatalogItem> {
         require(type in setOf("movie", "series", "channel", "tv"))
         require(query.isNotBlank() && query.length <= 200)
-        val encodedQuery = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8)
-            .replace("+", "%20")
-        val request = URI(endpoint.resource("catalog", type, catalogId).toString() +
-            "/search=" + encodedQuery + ".json")
+        val encodedQuery =
+            URLEncoder.encode(query.trim(), StandardCharsets.UTF_8).replace("+", "%20")
+        val request =
+            URI(
+                endpoint.resource("catalog", type, catalogId).toString() +
+                    "/search=" +
+                    encodedQuery +
+                    ".json"
+            )
         // The Stremio protocol requires a literal search= prefix in this segment.
         val json = Json.parseToJsonElement(transport.getJson(request)).obj()
         val items = json["metas"] as? JsonArray ?: return emptyList()
