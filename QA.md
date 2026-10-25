@@ -1,9 +1,95 @@
-# QA — этап 1
+# QA — Family Cinema, этап 1
 
-Дата: 2026-10-25. Отчёт обновляется по фактическим проверкам; завершение основного сценария пока не заявлено.
+Дата: 2026-10-25. Реализована рабочая автономная основа этапа 1. Полный PROJECT_CONTRACT.md и готовность Android TV не объявляются выполненными: проверки физических устройств, TV-пульта и последующие интеграции ещё нужны.
 
-Проверено локально: Android debug APK и тестовый APK собираются; 5 domain-тестов и 2 PIN-теста прошли; Android Lint без ошибок (предупреждения устранены в исходниках, повторная проверка следует). Backend: 9 тестов; health и catalog проверены через запущенный Uvicorn. Подробные команды, хеш APK и итог инструментального запуска будут добавлены после завершения проверки эмулятора.
+## APK
 
-Эмулятор Android 30 x86_64 запущен без KVM: аппаратное ускорение отсутствует. Основной инструментальный тест реализован, результат ещё не получен. TV/пульт, физические устройства, TalkBack, маршруты и реальные источники не проверены.
+- Готовый файл: `artifacts/family-cinema-debug.apk`.
+- Оригинал сборки: `app/build/outputs/apk/debug/app-debug.apk`.
+- Package: `ru.familycinema.app`, versionName `0.1.0`, versionCode `1`.
+- SHA-256: `b094ac94e2cf25bf6f188e6d75860ff7fa8764dd7ecb487c3c83950773e17d29`.
+- Подпись: debug, APK Signature Scheme v2; проверка `apksigner verify` успешна. Это APK для испытаний, не production release.
+- minSdk 26, target/compileSdk 35. В APK упакованы arm64-v8a, armeabi-v7a, x86, x86_64 зависимости AndroidX; фактически исполнен только x86_64 на эмуляторе. Совместимость остальных ABI/кодеков на устройствах не заявляется.
+- Мобильный и TV launcher в одном APK. Разрешения INTERNET нет; автономное воспроизведение не зависит от backend.
 
-Torznab и torrent engine — только интерфейсы. Серверная БД, авторизация, синхронизация, поиск, P2P, gateway и временные лимиты ещё не реализованы. Текущий APK — тестовый автономный этап 1, не готовый релиз полного контракта.
+APK, видео, screenshots, полные логи и ключ debug-подписи не коммитятся. Они находятся в рабочей копии; исходники, воспроизводимая сборка, этот отчёт и небольшие текстовые свидетельства сохранены в Git. Предыдущие CI APK относятся к предыдущим коммитам; финальным артефактом этой проверки является файл с указанным выше SHA-256.
+
+## Фактические результаты
+
+| Проверка | Результат | Свидетельство |
+| --- | --- | --- |
+| `:app:assembleDebug` | PASS | `artifacts/gradle-verified-final.log`, BUILD SUCCESSFUL |
+| `:app:assembleDebugAndroidTest` | PASS | тот же лог, тестовый APK в `app/build/outputs/apk/androidTest/debug/` |
+| `:domain:test` | PASS, 5 тестов | [JUnit XML](docs/evidence/TEST-ru.familycinema.domain.ApprovalTest.xml) |
+| `:parental:testDebugUnitTest` | PASS, 2 теста | [JUnit XML](docs/evidence/TEST-ru.familycinema.parental.PinHasherTest.xml) |
+| `:app:lintDebug` | PASS, 0 issues | [Lint](docs/evidence/android-lint.txt) |
+| Backend pytest | PASS, 9 тестов | [JUnit XML](docs/evidence/backend-tests.xml) |
+| Инструментальный сценарий на финальном APK | PASS, 1 тест, 132.425 s | [Вывод runner](docs/evidence/android-instrumentation.txt) |
+| Проверка подписи APK | PASS | [apksigner](docs/evidence/apk-signature.txt) |
+| Реальный HTTP `/health`, `/catalog` через Uvicorn | PASS для каркаса | [health](docs/evidence/health.json), [catalog](docs/evidence/catalog.json) |
+| Формат тестового видео | 40 s, H.264 Constrained Baseline 960×540 / AAC LC | `artifacts/media-probe.json` |
+
+Backend сообщает `database: not_configured`, каталог пустой — это ожидаемый каркас, а не работающая серверная синхронизация. При pytest есть одно предупреждение Starlette о будущем переходе TestClient с httpx на httpx2; ошибок нет.
+
+Финальный инструментальный тест выполнен локально в облачной среде: Android 11 / API 30, x86_64, Pixel 2 AVD, 720×1280, density 280, аппаратное ускорение отсутствует (`-accel off`). Wi-Fi и mobile data выключены перед прогоном. Проверены создание и повтор PIN, родительская карточка, одобрение конкретной версии, детский каталог, декодированное видео шириной 960 px и движение позиции Media3 >1.5 s, сохранение позиции, повторный запуск с продолжением, неверный PIN, успешный вход и отзыв одобрения с пустым детским каталогом. Изображения финального прогона: `artifacts/parent.png`, `artifacts/child-catalog.png`, `artifacts/player.png`.
+
+Domain-тесты отдельно проверяют отказ одобрения при изменении URI, SHA-256 и номера эпизода. PIN-тесты проверяют правильный/неправильный PIN и разные соли.
+
+## Команды
+
+В среде установлены Gradle 8.10.2, полный JDK 21.0.8, Android SDK и FFmpeg. Изначально имелся только JRE; его было недостаточно для компиляции. SDK находится вне Git, `local.properties` исключён из Git.
+
+```sh
+JAVA_HOME=/workspace/tools/jdk-21.0.8 ./gradlew \
+  -Djavax.net.ssl.trustStore=/etc/ssl/certs/java/cacerts \
+  -Dhttps.proxyHost=proxy -Dhttps.proxyPort=8080 \
+  -Dhttp.proxyHost=proxy -Dhttp.proxyPort=8080 \
+  --console=plain :app:assembleDebug :app:assembleDebugAndroidTest \
+  :domain:test :parental:testDebugUnitTest :app:lintDebug
+
+cd backend
+../.venv/bin/python -m pytest -q --junitxml=../artifacts/backend-tests.xml
+../.venv/bin/python -m uvicorn app.main:app --host 127.0.0.1 --port 8090
+# В другом терминале:
+curl -fsS http://127.0.0.1:8090/health
+curl -fsS http://127.0.0.1:8090/catalog
+
+adb install -r app/build/outputs/apk/debug/app-debug.apk
+adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
+adb shell pm clear ru.familycinema.app
+adb shell am instrument -w \
+  ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
+
+apksigner verify --verbose artifacts/family-cinema-debug.apk
+sha256sum artifacts/family-cinema-debug.apk
+```
+
+Настройки proxy/CA относятся к этой среде, в проект не зашиты; TLS не отключался. Обычная сборка описана в README.md.
+
+## Найденные и исправленные проблемы
+
+- Первая загрузка Gradle-зависимостей не прошла без явного Java proxy; повторная с доверенным CA успешна.
+- Первоначальный JRE не содержал javac; установлен полный JDK без изменения системных секретов.
+- Первоначальный CI setup пытался установить устаревший пакет SDK `tools`; заменён поддерживаемыми пакетами.
+- Медленный эмулятор при первоначальной загрузке перезапускал system_server и показывал системный ANR. Первый локальный прогон не учитывается как PASS.
+- Первый локальный тест дополнительно выявил настоящий дефект: создание ExoPlayer из `remember` при пересчёте Compose на другом потоке. Создание, жизненный цикл и освобождение перенесены в отменяемый эффект с явным `Dispatchers.Main.immediate`; PlayerView обновляется при появлении плеера. Финальный прогон на чистых данных прошёл после исправления.
+- Устранены замечания Lint по языковому split, размеру vector и правилам переноса приватных данных Android 12+. Добавлены safe drawing insets.
+
+## GitHub Actions и расход
+
+По просьбе пользователя Actions теперь запускаются **только вручную**: `workflow_dispatch`. Push/PR не запускают проверки. Один прогон одновременно, предыдущий отменяется, timeout 15 минут на job, хранение будущих артефактов 7 дней. Все запущенные этой задачей прогоны завершены либо отменены; после изменения предпочтения финальная проверка проводилась локально.
+
+Для шести прогонов `40180669395`, `40180721777`, `40180756997`, `40180903440`, `40181391154`, `40181406621` репозиторийный timing API вернул `billable.UBUNTU.total_ms: 0`. Это показание API по этим прогонам, не остаток общей квоты аккаунта и не оценка хранения. Общий `users/VasiliiBabkin/settings/billing/usage` недоступен текущей интеграции (HTTP 403). На момент проверки в репозитории 4 артефакта суммарно 23 746 044 байта; прежние артефакты не удалялись.
+
+[Исторический успешный CI](https://github.com/VasiliiBabkin/family-cinema/actions/runs/40180903440) подтвердил чистую сборку и основной сценарий на предыдущем коммите. Он не заменяет локальный прогон финального исправленного APK.
+
+## Ограничения и непроверенное
+
+- Только один собственный CC0-тестовый ролик; это не реальный поисковый каталог фильмов. Происхождение и воспроизводимая генерация: [TEST_MEDIA.md](docs/TEST_MEDIA.md).
+- Реальные смартфоны, планшеты, Android TV/Google TV, TV D-pad/Back/OK, TalkBack, поворот/многоконный режим и весь набор аппаратных декодеров не испытаны. Разные оболочки и крупный фокус реализованы, TV-готовность не подтверждена.
+- Блокировка после пяти ошибок PIN реализована, но полный сценарий блокировки/перезагрузки отдельно не проверен инструментально. PIN не защищает от root, очистки данных или авторизованного ADB-доступа к debug APK. Восстановление PIN пока отсутствует.
+- Несколько детских профилей, временные лимиты, настраиваемые возрастные исключения и release hardening не реализованы.
+- FastAPI — каркас. PostgreSQL, серверная авторизация, очередь одобрений, поиск и синхронизация не подключены.
+- Torznab, документированные внешние API, magnet/.torrent, torrent engine и gateway — только будущие контракты. Media3 не реализует BitTorrent.
+- Нет испытаний реальных источников, пиров, плохой сети, маршрутов/VPN, дискового лимита или изменения удалённого файла. Для них PASS не заявляется.
+- Полная приёмка этапа 1 и переход к этапам 2–5 требуют TV/device QA и расширения проверок. Проект не объявляется готовым ко всему контракту или публикации в магазине.

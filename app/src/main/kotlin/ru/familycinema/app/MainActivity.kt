@@ -34,6 +34,7 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.media3.common.PlaybackException
 import androidx.media3.common.Player
 import androidx.media3.ui.PlayerView
+import kotlinx.coroutines.awaitCancellation
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
@@ -206,7 +207,8 @@ private val Gold=Color(0xFFF5C678)
  } else {
   var player by remember { mutableStateOf<androidx.media3.exoplayer.ExoPlayer?>(null) }
   val owner=LocalLifecycleOwner.current
-  DisposableEffect(film.id,owner) {
+  LaunchedEffect(film.id,owner) {
+   withContext(Dispatchers.Main.immediate) {
    val activePlayer=Playback.create(context,film.version.uri,store.position(film.id))
    player=activePlayer
    val observer=LifecycleEventObserver { _,event -> if(event==Lifecycle.Event.ON_STOP) {store.savePosition(film.id,activePlayer.currentPosition);activePlayer.pause()} }
@@ -215,7 +217,9 @@ private val Gold=Color(0xFFF5C678)
     override fun onPlaybackStateChanged(state:Int) { if(state==Player.STATE_ENDED) store.savePosition(film.id,0) }
    }
    activePlayer.addListener(listener);owner.lifecycle.addObserver(observer)
-   onDispose { store.savePosition(film.id,if(activePlayer.playbackState==Player.STATE_ENDED) 0 else activePlayer.currentPosition);owner.lifecycle.removeObserver(observer);activePlayer.removeListener(listener);activePlayer.release();player=null }
+   try { awaitCancellation() }
+   finally { store.savePosition(film.id,if(activePlayer.playbackState==Player.STATE_ENDED) 0 else activePlayer.currentPosition);owner.lifecycle.removeObserver(observer);activePlayer.removeListener(listener);activePlayer.release();player=null }
+   }
   }
   val activePlayer=player
   Column(Modifier.fillMaxSize()) {
