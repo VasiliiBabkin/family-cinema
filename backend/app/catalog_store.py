@@ -8,7 +8,7 @@ from __future__ import annotations
 import json
 import sqlite3
 from dataclasses import dataclass
-from typing import Iterable
+from hashlib import sha256
 
 
 @dataclass(frozen=True)
@@ -112,6 +112,15 @@ class CatalogStore:
                     break
         return matched[offset:offset + limit]
 
+    @staticmethod
+    def version_fingerprint(work_id: str, episode_id: str | None, source_id: str,
+                            digest: str, locator: str) -> str:
+        identity = json.dumps(
+            [work_id, episode_id, source_id, digest, locator],
+            ensure_ascii=False, separators=(",", ":"),
+        )
+        return sha256(identity.encode("utf-8")).hexdigest()
+
     def put_version(self, *, version_id: str, work_id: str, source_id: str,
                     sha256: str, locator: str, fingerprint: str,
                     episode_id: str | None = None, verified: bool = False) -> None:
@@ -119,6 +128,11 @@ class CatalogStore:
             raise ValueError("Invalid digest")
         if not all((version_id, work_id, source_id, locator, fingerprint)):
             raise ValueError("Missing version identity")
+        # Reject arbitrary client-chosen identity strings: bind approvals to the
+        # exact source, content digest, location, work and episode.
+        expected = self.version_fingerprint(work_id, episode_id, source_id, sha256, locator)
+        if fingerprint != expected:
+            raise ValueError("Version fingerprint does not match media identity")
         self.db.execute(
             """INSERT INTO media_versions(id,work_id,episode_id,source_id,sha256,locator,fingerprint,verified)
             VALUES (?,?,?,?,?,?,?,?)
