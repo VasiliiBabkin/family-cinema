@@ -43,7 +43,9 @@ class LibraryRepository(val context: Context) {
         }
 
     fun fingerprint(v: Version) =
-        digest("${v.id}|${v.sourceId}|${v.episodeId}|${v.sha256}|${digest(vault.open(v.locator))}")
+        digest(
+            "${v.workId}|${v.id}|${v.sourceId}|${v.episodeId}|${v.sha256}|${digest(vault.open(v.locator))}"
+        )
 
     fun cancelNetworking() {
         SafeNetwork.client.dispatcher.cancelAll()
@@ -188,7 +190,9 @@ class LibraryRepository(val context: Context) {
                     p.autoApprove,
                     source?.trusted == true,
                     source?.rights == true,
-                    v.verified,
+                    v.verified &&
+                        (v.sourceId == "local" ||
+                            v.expectedSha256.isNotBlank() && v.expectedSha256 == v.sha256),
                     w.age,
                     p.ageLimit,
                     old?.manualDeny == true || contentDenied,
@@ -252,7 +256,10 @@ class LibraryRepository(val context: Context) {
                     digest("external|${remote.type}|${remote.id}")
                 else digest("${source.id}|${remote.type}|${remote.id}")
             val old = dao.work(id)
-            val work =
+            val previousVersions = if (old != null) dao.versions(id) else emptyList()
+            val protectedVersions = previousVersions.filter { dao.decision(it.id)?.allowed == true }
+            val protectedEpisodes = protectedVersions.map { it.episodeId }.toSet()
+            val proposed =
                 Work(
                     id,
                     source.id,
@@ -278,13 +285,14 @@ class LibraryRepository(val context: Context) {
                     },
                     source.title,
                 )
+            val work = if (protectedVersions.isNotEmpty()) old!! else proposed
             db.withTransaction {
                 dao.work(work)
                 dao.link(WorkSource(id, source.id, remote.id))
                 remote.episodes.forEach { e ->
-                    dao.episode(
-                        Episode(digest("$id|${e.id}"), id, e.id, e.season, e.number, e.title)
-                    )
+                    val episodeId = digest("$id|${e.id}")
+                    if (episodeId !in protectedEpisodes)
+                        dao.episode(Episode(episodeId, id, e.id, e.season, e.number, e.title))
                 }
             }
             work
@@ -297,6 +305,8 @@ class LibraryRepository(val context: Context) {
             val url =
                 if (stored.startsWith("remote:")) vault.open(stored.removePrefix("remote:"))
                 else stored
+            if (dao.versions(work.id).any { dao.decision(it.id)?.allowed == true })
+                return@withContext work
             val source = dao.source(work.sourceId) ?: return@withContext work
             require(source.rights)
             val dir = File(context.filesDir, "posters").apply { mkdirs() }
@@ -343,22 +353,36 @@ class LibraryRepository(val context: Context) {
                 }
             val result = mutableListOf<Version>()
             var errors = 0
-            for (link in links) {
-                val source = dao.source(link.sourceId) ?: continue
-                if (!source.enabled) continue
+            for (source in
+                dao.sources().filter { it.enabled && it.id !in setOf("local", "direct") }) {
                 try {
-                    client(source).streams(work.type, episode?.remoteId ?: link.remoteId).forEach {
-                        stream ->
+                    val addon = client(source)
+                    val manifest = addon.manifest()
+                    if ("stream" !in manifest.resources) continue
+                    if (manifest.types.isNotEmpty() && work.type !in manifest.types) continue
+                    val link = links.find { it.sourceId == source.id }
+                    val shared =
+                        work.remoteId.matches(Regex("tt[0-9]+")) ||
+                            manifest.idPrefixes.any { work.remoteId.startsWith(it) }
+                    if (link == null && !shared) continue
+                    val remoteId =
+                        if (episode == null) link?.remoteId ?: work.remoteId
+                        else if (link != null) episode.remoteId
+                        else "${work.remoteId}:${episode.season}:${episode.number}"
+                    addon.streams(work.type, remoteId).forEach { stream ->
                         val locator = stream.url ?: "magnet:?xt=urn:btih:${stream.infoHash}"
                         result +=
                             Version(
-                                digest("${work.id}|${episode?.id}|${source.id}|$locator"),
+                                digest(
+                                    "candidate|${work.id}|${episode?.id}|${source.id}|$locator|${stream.expectedSha256}"
+                                ),
                                 work.id,
                                 episode?.id ?: "",
                                 source.id,
                                 stream.title,
                                 vault.seal(locator),
                                 kind = if (stream.url != null) "https" else "torrent",
+                                expectedSha256 = stream.expectedSha256,
                             )
                     }
                 } catch (e: CancellationException) {
@@ -393,6 +417,8 @@ class LibraryRepository(val context: Context) {
                             }
                             out.write(buffer, 0, n)
                             digest.update(buffer, 0, n)
+                            if (bytes % (256 * 1024) < n)
+                                transferState.value = Transfer(bytes, total)
                         }
                     }
                 }
@@ -421,6 +447,9 @@ class LibraryRepository(val context: Context) {
                     "Файл превышает свободный лимит"
                 }
                 val (file, sha) = copy(body.byteStream(), body.contentLength())
+                require(version.expectedSha256.isBlank() || sha == version.expectedSha256) {
+                    "Содержимое не соответствует заявленному SHA-256. Разрешение не выдано"
+                }
                 try {
                     inspectVideo(file)
                 } catch (t: Throwable) {
@@ -433,6 +462,10 @@ class LibraryRepository(val context: Context) {
                     throw t
                 }
                 version.copy(
+                    id =
+                        digest(
+                            "verified|${version.workId}|${version.episodeId}|${version.sourceId}|${vault.open(version.locator)}|$sha"
+                        ),
                     file = file.absolutePath,
                     sha256 = sha,
                     verified = true,
@@ -442,6 +475,17 @@ class LibraryRepository(val context: Context) {
         }
 
     private fun inspectVideo(file: File) {
+        val prefix =
+            file.inputStream().use { input ->
+                val b = ByteArray(512)
+                val n = input.read(b)
+                if (n > 0)
+                    b.copyOf(n).toString(Charsets.UTF_8).trimStart('\uFEFF', ' ', '\n', '\r', '\t')
+                else ""
+            }
+        require(!prefix.startsWith("#EXTM3U") && !prefix.startsWith("<")) {
+            "Нужен самостоятельный видеофайл; манифесты не импортируются"
+        }
         val r = android.media.MediaMetadataRetriever()
         try {
             r.setDataSource(file.absolutePath)
@@ -454,6 +498,53 @@ class LibraryRepository(val context: Context) {
         } finally {
             r.release()
         }
+    }
+
+    private fun localPoster(file: File, id: String): String? {
+        if (android.os.Build.VERSION.SDK_INT < 27) return null
+        return runCatching {
+                val dir = File(context.filesDir, "posters").apply { mkdirs() }
+                val output = File(dir, "$id.jpg")
+                if (output.exists()) return@runCatching output.absolutePath
+                val retriever = android.media.MediaMetadataRetriever()
+                try {
+                    retriever.setDataSource(file.absolutePath)
+                    val duration =
+                        retriever
+                            .extractMetadata(
+                                android.media.MediaMetadataRetriever.METADATA_KEY_DURATION
+                            )
+                            ?.toLongOrNull() ?: 0L
+                    val bitmap =
+                        retriever.getScaledFrameAtTime(
+                            duration * 100,
+                            android.media.MediaMetadataRetriever.OPTION_CLOSEST_SYNC,
+                            512,
+                            320,
+                        ) ?: return@runCatching null
+                    try {
+                        output.outputStream().use {
+                            bitmap.compress(android.graphics.Bitmap.CompressFormat.JPEG, 82, it)
+                        }
+                    } finally {
+                        bitmap.recycle()
+                    }
+                } finally {
+                    retriever.release()
+                }
+                var size = dir.listFiles()?.sumOf { it.length() } ?: 0L
+                dir.listFiles()
+                    ?.filter { it != output }
+                    ?.sortedBy { it.lastModified() }
+                    ?.forEach { old ->
+                        if (size > 32L * 1024 * 1024) {
+                            val bytes = old.length()
+                            if (old.delete()) size -= bytes
+                        }
+                    }
+                output.absolutePath
+            }
+            .getOrNull()
     }
 
     suspend fun importLocal(
@@ -471,15 +562,17 @@ class LibraryRepository(val context: Context) {
             inspectVideo(file)
             val id = digest("local|$title|${if(series)"series" else hash}")
             val work =
-                Work(
-                    id,
-                    "local",
-                    id,
-                    if (series) "series" else "movie",
-                    title,
-                    age = age,
-                    attribution = "Личный файл · добавлен родителем",
-                )
+                dao.work(id)
+                    ?: Work(
+                        id,
+                        "local",
+                        id,
+                        if (series) "series" else "movie",
+                        title,
+                        age = age,
+                        poster = localPoster(file, id),
+                        attribution = "Личный файл · добавлен родителем",
+                    )
             val episode =
                 if (series)
                     Episode(

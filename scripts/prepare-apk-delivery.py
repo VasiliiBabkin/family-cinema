@@ -15,8 +15,8 @@ import subprocess
 def main():
     parser = argparse.ArgumentParser(description="Подготовка проверенного APK к доставке")
     parser.add_argument("--apk", type=Path, required=True)
-    parser.add_argument("--version", default="0.2.0")
-    parser.add_argument("--target", choices=["universal", "mobile", "tv"], default="universal")
+    parser.add_argument("--version", default="0.3.0")
+    parser.add_argument("--target", choices=["universal", "mobile", "tv", "arm64-v8a"], default="universal")
     parser.add_argument("--variant", choices=["debug", "release"], default="debug")
     parser.add_argument("--output", type=Path, default=Path("artifacts/delivery"))
     parser.add_argument("--build-tools", type=Path)
@@ -35,6 +35,12 @@ def main():
     badging = subprocess.check_output([str(tools / "aapt"), "dump", "badging", str(args.apk)], text=True)
     if f"versionName='{args.version}'" not in badging:
         parser.error("Версия APK не совпадает с указанной")
+    if args.target == "arm64-v8a":
+        import zipfile
+        with zipfile.ZipFile(args.apk) as archive:
+            abis = {n.split("/")[1] for n in archive.namelist() if n.startswith("lib/") and n.endswith(".so")}
+        if abis != {"arm64-v8a"}:
+            parser.error(f"Ожидался только arm64-v8a; получено {sorted(abis)}")
     args.output.mkdir(parents=True, exist_ok=True)
     filename = f"family-cinema-v{args.version}-{args.target}-{args.variant}.apk"
     destination = args.output / filename

@@ -14,7 +14,6 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.*
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil.ImageLoader
 import coil.compose.AsyncImage
@@ -74,17 +73,6 @@ internal fun Cover(w: Work, modifier: Modifier, parent: Boolean) {
     else
         Box(modifier.clip(CinemaTokens.Corners)) {
             NightArtwork(Modifier.matchParentSize(), decorative = true)
-            Text(
-                w.title,
-                Modifier.align(Alignment.BottomStart)
-                    .background(androidx.compose.ui.graphics.Color(0xBB102D30))
-                    .fillMaxWidth()
-                    .padding(12.dp),
-                color = androidx.compose.ui.graphics.Color.White,
-                maxLines = 2,
-                overflow = TextOverflow.Ellipsis,
-                style = MaterialTheme.typography.titleMedium,
-            )
         }
 }
 

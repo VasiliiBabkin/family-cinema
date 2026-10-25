@@ -67,9 +67,10 @@ object SafeNetwork {
         object : Dns {
             override fun lookup(host: String): List<InetAddress> =
                 Dns.SYSTEM.lookup(host).also { addresses ->
-                    require(addresses.isNotEmpty() && addresses.all(::publicAddress)) {
-                        "Локальные и служебные адреса запрещены"
-                    }
+                    if (addresses.isEmpty() || addresses.any { !publicAddress(it) })
+                        throw java.net.UnknownHostException(
+                            "Локальные и служебные адреса запрещены"
+                        )
                 }
         }
     val client: OkHttpClient =
@@ -82,7 +83,11 @@ object SafeNetwork {
             .readTimeout(20, TimeUnit.SECONDS)
             .callTimeout(90, TimeUnit.SECONDS)
             .addInterceptor { chain ->
-                validate(chain.request().url.toString())
+                try {
+                    validate(chain.request().url.toString())
+                } catch (e: IllegalArgumentException) {
+                    throw java.io.IOException("Небезопасный адрес потока", e)
+                }
                 val r = chain.proceed(chain.request())
                 if (r.code in 300..399) {
                     r.close()

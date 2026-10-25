@@ -136,6 +136,7 @@ internal fun WorkPage(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
         if (shown.isEmpty()) item { Text(s(R.string.versions_empty)) }
         items(shown, key = { it.id }) { v ->
             val d = c.decisions[v.id]
+            val hasGrant = v.id in c.exactGrants
             Card(Modifier.fillMaxWidth()) {
                 Column(Modifier.padding(18.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
@@ -160,7 +161,7 @@ internal fun WorkPage(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
                             }
                     if (model.parent && d != null)
                         Text(
-                            s(if (d.allowed) R.string.approved else R.string.unapproved) +
+                            s(if (hasGrant) R.string.approved else R.string.unapproved) +
                                 " · " +
                                 s(
                                     when (d.origin) {
@@ -214,15 +215,10 @@ internal fun WorkPage(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
                             }
                             if (model.parent)
                                 OutlinedButton(
-                                    onClick = { approval = v to (d?.allowed != true) },
+                                    onClick = { approval = v to (!hasGrant) },
                                     modifier = Modifier.testTag("version_approve").cinemaFocus(),
                                 ) {
-                                    Text(
-                                        s(
-                                            if (d?.allowed == true) R.string.revoke
-                                            else R.string.approve
-                                        )
-                                    )
+                                    Text(s(if (hasGrant) R.string.revoke else R.string.approve))
                                 }
                         }
                     }

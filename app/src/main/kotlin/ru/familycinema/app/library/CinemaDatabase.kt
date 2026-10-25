@@ -48,6 +48,7 @@ data class Version(
     val verified: Boolean = false,
     val bytes: Long = 0,
     val kind: String = "https",
+    @ColumnInfo(defaultValue = "''") val expectedSha256: String = "",
 )
 
 @Entity(tableName = "sources")
@@ -120,6 +121,9 @@ data class WorkSource(val workId: String, val sourceId: String, val remoteId: St
 
 @Dao
 interface LibraryDao {
+    @Query("DELETE FROM versions WHERE id=:id AND verified=0")
+    suspend fun removeCandidate(id: String)
+
     @Upsert suspend fun link(value: WorkSource)
 
     @Query("SELECT * FROM work_sources WHERE workId=:id")
@@ -198,13 +202,22 @@ interface LibraryDao {
             Audit::class,
             WorkSource::class,
         ],
-    version = 4,
+    version = 5,
     exportSchema = true,
 )
 abstract class CinemaDatabase : RoomDatabase() {
     abstract fun library(): LibraryDao
 
     companion object {
+        val MIGRATION_4_5 =
+            object : Migration(4, 5) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "ALTER TABLE `versions` ADD COLUMN `expectedSha256` TEXT NOT NULL DEFAULT ''"
+                    )
+                }
+            }
+
         val MIGRATION_3_4 =
             object : Migration(3, 4) {
                 override fun migrate(db: SupportSQLiteDatabase) {
@@ -252,7 +265,12 @@ abstract class CinemaDatabase : RoomDatabase() {
                                 CinemaDatabase::class.java,
                                 "cinema.db",
                             )
-                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
+                            .addMigrations(
+                                MIGRATION_1_2,
+                                MIGRATION_2_3,
+                                MIGRATION_3_4,
+                                MIGRATION_4_5,
+                            )
                             .build()
                             .also { instance = it }
                 }

@@ -114,7 +114,12 @@ internal fun PolicyPage(model: CinemaViewModel, tv: Boolean) {
                 Text(a.event, style = MaterialTheme.typography.titleMedium)
                 Text(a.detail, style = MaterialTheme.typography.bodySmall)
                 Text(
-                    java.text.DateFormat.getDateTimeInstance().format(java.util.Date(a.at)),
+                    java.text.DateFormat.getDateTimeInstance(
+                            java.text.DateFormat.SHORT,
+                            java.text.DateFormat.SHORT,
+                            java.util.Locale("ru"),
+                        )
+                        .format(java.util.Date(a.at)),
                     style = MaterialTheme.typography.labelSmall,
                 )
                 HorizontalDivider()

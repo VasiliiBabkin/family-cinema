@@ -88,7 +88,7 @@ class AddonProtocol(
                     ".json"
             )
         // The Stremio protocol requires a literal search= prefix in this segment.
-        val json = Json.parseToJsonElement(transport.getJson(request)).obj()
+        val json = JsonEnvelope.parse(transport.getJson(request)).obj()
         val items = json["metas"] as? JsonArray ?: return emptyList()
         return items.take(100).mapNotNull {
             val obj = it as? JsonObject ?: return@mapNotNull null
@@ -101,7 +101,7 @@ class AddonProtocol(
     suspend fun streams(type: String, videoId: String): List<AddonStream> {
         require(type in setOf("movie", "series", "channel", "tv"))
         val request = endpoint.resource("stream", type, "$videoId.json")
-        val json = Json.parseToJsonElement(transport.getJson(request)).obj()
+        val json = JsonEnvelope.parse(transport.getJson(request)).obj()
         val streams = json["streams"] as? JsonArray ?: return emptyList()
         return streams.take(100).mapNotNull {
             val obj = it as? JsonObject ?: return@mapNotNull null

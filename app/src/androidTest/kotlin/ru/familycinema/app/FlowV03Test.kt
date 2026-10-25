@@ -30,11 +30,16 @@ class FlowV03Test {
         get() = InstrumentationRegistry.getArguments().getString("layout", "phone")
 
     private fun click(tag: String) {
-        val n = ui.onNodeWithTag(tag)
+        if (tag == "library_confirm")
+            ui.waitUntil(15000) { ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
+        if (ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isEmpty()) {
+            ui.onAllNodes(hasScrollToIndexAction()).onFirst().performScrollToNode(hasTestTag(tag))
+        }
+        val node = ui.onNodeWithTag(tag)
         try {
-            n.performScrollTo()
+            node.performScrollTo()
         } catch (_: AssertionError) {}
-        n.performClick()
+        node.performClick()
         ui.waitForIdle()
     }
 
@@ -54,11 +59,20 @@ class FlowV03Test {
 
     private fun idle() {
         ui.waitUntil(90000) {
-            var ok = false
+            var ready = false
+            var role = false
+            var ids = emptySet<String>()
             ui.runOnUiThread {
-                ok = ui.activity.cinema.library.ready && !ui.activity.cinema.library.busy
+                val c = ui.activity.cinema.library
+                ready = c.ready && !c.busy
+                role = ui.activity.cinema.parent
+                ids = c.works.map { it.id }.toSet()
             }
-            ok
+            ready &&
+                ids ==
+                    runBlocking {
+                        ui.activity.cinema.library.repo.visible(role).map { it.id }.toSet()
+                    }
         }
         ui.waitForIdle()
     }
@@ -69,6 +83,12 @@ class FlowV03Test {
         i.waitForIdleSync()
         android.os.SystemClock.sleep(500)
         runCatching { i.uiAutomation.waitForIdle(200, 5000) }
+        val root = i.uiAutomation.rootInActiveWindow
+        assertTrue(
+            "Скриншот должен принадлежать приложению, а не системному ANR",
+            root?.packageName?.toString() == "ru.familycinema.app" ||
+                root?.packageName?.toString()?.contains("inputmethod") == true,
+        )
         val bitmap = i.uiAutomation.takeScreenshot() ?: error("No screenshot")
         File(ui.activity.filesDir, "v03-$layout-$name.png").outputStream().use {
             bitmap.compress(android.graphics.Bitmap.CompressFormat.PNG, 100, it)
@@ -272,5 +292,63 @@ class FlowV03Test {
         assertEquals(1, runBlocking { repo.visible(false).size })
 
         assertFalse(runBlocking { repo.visible(false).any { it.id == imported.id } })
+    }
+
+    @Test
+    fun seriesShowsOnlyApprovedEpisodes() {
+        screen(Screen.PIN)
+        pin("1234")
+        pin("1234")
+        screen(Screen.PARENT)
+        idle()
+        val model = ui.activity.cinema
+        val repo = model.library.repo
+        ui.runOnUiThread {
+            model.prepareImport("Домашний сериал", 6, true, 1, 1)
+            model.acceptPickedFile(Uri.parse("content://ru.familycinema.app.test.media/clip"))
+        }
+        screen(Screen.SOURCES)
+        idle()
+        val work = runBlocking { repo.dao.works().first { it.type == "series" } }
+        val episode = runBlocking { repo.dao.episodes(work.id).single() }
+        ui.runOnUiThread { model.openWork(work) }
+        screen(Screen.WORK)
+        idle()
+        ui.onAllNodes(hasScrollToIndexAction()).onFirst().performScrollToNode(hasText("1. Серия 1"))
+        ui.onNodeWithText("1. Серия 1").performClick()
+        idle()
+        click("version_approve")
+        click("library_confirm")
+        idle()
+        ui.runOnUiThread {
+            model.prepareImport("Домашний сериал", 6, true, 2, 1)
+            model.acceptPickedFile(Uri.parse("content://ru.familycinema.app.test.media/second"))
+        }
+        screen(Screen.SOURCES)
+        idle()
+        assertEquals(2, runBlocking { repo.dao.episodes(work.id).size })
+        click("exit_parent")
+        screen(Screen.CHILD)
+        idle()
+        click("work_${work.id}")
+        screen(Screen.WORK)
+        idle()
+        ui.runOnUiThread { assertEquals(listOf(episode.id), model.library.episodes.map { it.id }) }
+        ui.onAllNodes(hasScrollToIndexAction()).onFirst().performScrollToNode(hasText("1. Серия 1"))
+        ui.onNodeWithText("1. Серия 1").performClick()
+        capture("series")
+        ui.onNodeWithText("Сезон 2").assertDoesNotExist()
+        click("version_play")
+        screen(Screen.PLAYER)
+        ui.waitUntil(90000) {
+            var decoded = false
+            ui.runOnUiThread { decoded = model.player?.videoSize?.width == 960 }
+            decoded
+        }
+        ui.runOnUiThread {
+            model.player!!.pause()
+            model.showControls()
+        }
+        capture("series-player")
     }
 }

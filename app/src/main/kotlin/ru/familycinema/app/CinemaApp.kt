@@ -122,7 +122,12 @@ fun CinemaApp(model: CinemaViewModel) {
                 },
                 contentWindowInsets = WindowInsets.safeDrawing,
             ) { padding ->
-                Row(Modifier.fillMaxSize().padding(padding)) {
+                Row(
+                    Modifier.fillMaxSize()
+                        .padding(padding)
+                        .consumeWindowInsets(padding)
+                        .imePadding()
+                ) {
                     if (wide && model.screen != Screen.PIN && !tv)
                         NavigationRail(containerColor = MaterialTheme.colorScheme.background) {
                             Spacer(Modifier.height(32.dp))

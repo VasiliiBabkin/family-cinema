@@ -15,6 +15,8 @@ data class Manifest(
     val version: String,
     val catalogs: List<CatalogSpec>,
     val resources: Set<String>,
+    val types: Set<String> = emptySet(),
+    val idPrefixes: Set<String> = emptySet(),
 )
 
 data class RemoteEpisode(val id: String, val title: String, val season: Int, val number: Int)
@@ -34,7 +36,12 @@ data class RemoteWork(
     val episodes: List<RemoteEpisode>,
 )
 
-data class RemoteStream(val title: String, val url: String?, val infoHash: String?)
+data class RemoteStream(
+    val title: String,
+    val url: String?,
+    val infoHash: String?,
+    val expectedSha256: String = "",
+)
 
 data class RemoteSubtitle(val id: String, val lang: String, val url: String)
 
@@ -52,7 +59,7 @@ class AddonClient(
     private fun enc(s: String) = URLEncoder.encode(s, "UTF-8").replace("+", "%20")
 
     private fun get(path: String) =
-        Json.parseToJsonElement(fetch(base + path)) as? JsonObject
+        JsonEnvelope.parse(fetch(base + path)) as? JsonObject
             ?: error("Источник вернул неверный JSON")
 
     fun manifest(): Manifest {
@@ -80,13 +87,19 @@ class AddonClient(
                             },
                     )
                 }
-        require(catalogs.isNotEmpty()) { "Нет поддерживаемых каталогов movie/series" }
+        require(
+            catalogs.isNotEmpty() || resources.any { it in setOf("meta", "stream", "subtitles") }
+        ) {
+            "Нет поддерживаемых ресурсов"
+        }
         return Manifest(
             j.str("id") ?: error("Нет ID источника"),
             j.str("name") ?: error("Нет имени источника"),
             j.str("version") ?: "?",
             catalogs,
             resources,
+            j.arr("types").mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.toSet(),
+            j.arr("idPrefixes").mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.toSet(),
         )
     }
 
@@ -146,6 +159,9 @@ class AddonClient(
                     it.str("title") ?: it.str("name") ?: "Видео",
                     it.str("url"),
                     it.str("infoHash"),
+                    it.str("sha256")?.lowercase()?.takeIf { hash ->
+                        hash.matches(Regex("[0-9a-f]{64}"))
+                    } ?: "",
                 )
             }
 

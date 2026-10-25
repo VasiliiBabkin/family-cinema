@@ -267,9 +267,9 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun childMode() {
         closePlayer()
+        parent = false
         library.lock()
         resetDemo()
-        parent = false
         clearPin()
         screen = Screen.CHILD
     }
@@ -387,6 +387,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
 
     fun play() {
         if ((!parent && !approved) || screen == Screen.PLAYER) return
+        previewOnly = parent
         showControls()
         renderedFrames = 0
         screen = Screen.PLAYER
@@ -493,14 +494,15 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
     fun onBackground(changingConfiguration: Boolean) {
         if (changingConfiguration) return
         foreground = false
-        library.lock(clearSelection = parent)
+        val wasParent = parent
+        parent = false
+        library.lock(clearSelection = wasParent)
         checkpoint()
         player?.pause()
         controlsTimer?.cancel()
         scrubbing = false
         clearPin()
-        if (parent) {
-            parent = false
+        if (wasParent) {
             closePlayer()
             resetDemo()
             screen = Screen.CHILD

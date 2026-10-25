@@ -83,3 +83,7 @@ No remote service is required for basic local playback, PIN, manual approvals, p
 - Cloud account and remote pairing before local playback.
 - Implicit legal rights inferred from metadata or a source's popularity.
 - Automatically trusting public Stremio addons.
+
+## Реализация 0.3.0 в рабочей ветке
+
+Детальное описание фактической реализации, миграций и границ: [ARCHITECTURE.md](ARCHITECTURE.md). Инструкция родителю: [PARENT_GUIDE_V03.md](PARENT_GUIDE_V03.md). Статус испытаний определяется QA.md, а не списком planned tasks выше.

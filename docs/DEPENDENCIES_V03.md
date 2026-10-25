@@ -12,7 +12,7 @@
 | OkHttp | 4.12.0 | Apache-2.0 | HTTPS, проверяющий DNS-resolver, запрет redirect, таймауты и лимиты |
 | kotlinx.serialization JSON | 1.7.3 | Apache-2.0 | Разбор недоверенного addon JSON |
 | Coil Compose | 2.7.0 | Apache-2.0 | Показ приватно закешированных обложек, ограниченный cache |
-| Stremio Addon SDK / protocol | SDK v1.1.4, опубликованный protocol.md | SDK MIT | Собственный Kotlin-клиент открытого JSON-протокола catalog/meta/stream/subtitles; Node.js SDK не встроен |
+| Stremio Addon SDK / protocol | SDK npm 1.6.10 (GitHub release v1.1.4), опубликованный protocol.md | SDK MIT | Собственный Kotlin-клиент открытого JSON-протокола catalog/meta/stream/subtitles; Node.js SDK не встроен |
 | Jellyfin Kotlin SDK | v1.9.3 | LGPL-3.0 | Исследован, в APK не включён. Только будущий необязательный источник; LAN/логин/сервер не требуются основной библиотеке |
 | TMDB API | Hosted API, не библиотека | API key, атрибуция и проверка условий коммерческого использования | Не включён: ключ не предоставлен, официальная FAQ в этой среде вернула policy 403. Текущие условия этим проходом не подтверждены; чужие TMDB-постеры не встроены |
 | libtorrent | v2.1.2 | BSD-3-Clause + bundled dependency notices | Поддерживаемый C++ движок, не писать свой протокол; в APK пока не включён |

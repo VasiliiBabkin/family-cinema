@@ -45,6 +45,9 @@ class LibraryController(
     var versions by mutableStateOf<List<Version>>(emptyList())
         private set
 
+    var exactGrants by mutableStateOf<Set<String>>(emptySet())
+        private set
+
     var decisions by mutableStateOf<Map<String, Decision>>(emptyMap())
         private set
 
@@ -88,6 +91,7 @@ class LibraryController(
         if (clearSelection) selected = null
         episodes = emptyList()
         versions = emptyList()
+        exactGrants = emptySet()
         query = ""
         scope.launch { refresh() }
     }
@@ -118,8 +122,7 @@ class LibraryController(
                             e is javax.net.ssl.SSLException ->
                                 "Не удалось проверить защищённое соединение"
                             e is IllegalArgumentException ->
-                                e.message?.takeIf { !it.contains("http") && !it.contains("/") }
-                                    ?: "Неподдерживаемый или небезопасный адрес/файл"
+                                "Не удалось проверить адрес или файл. Нужен публичный HTTPS-источник, поддерживаемое видео и свободное место в дисковом лимите."
                             else ->
                                 "Не удалось выполнить действие. Источник может быть недоступен или формат не поддерживается."
                         }
@@ -157,10 +160,23 @@ class LibraryController(
         val historyIds = progressList.mapNotNull { repo.dao.version(it.versionId)?.workId }.toSet()
         val auditList = if (role) repo.dao.audit() else emptyList()
         val selection = selected?.let { old -> visible.find { it.id == old.id } }
-        val episodeList = selection?.let { repo.dao.episodes(it.id) } ?: emptyList()
+        val allEpisodes = selection?.let { repo.dao.episodes(it.id) } ?: emptyList()
         val versionList =
             selection?.let { repo.dao.versions(it.id).filter { role || repo.allowed(it) } }
                 ?: emptyList()
+        val exact =
+            withContext(Dispatchers.IO) {
+                versionList
+                    .filter { v ->
+                        val d = decisionMap[v.id]
+                        d?.allowed == true && d.fingerprint == repo.fingerprint(v)
+                    }
+                    .map { it.id }
+                    .toSet()
+            }
+        val permittedEpisodes = versionList.map { it.episodeId }.toSet()
+        val episodeList =
+            if (role) allEpisodes else allEpisodes.filter { it.id in permittedEpisodes }
         val progressIds =
             progressList
                 .filter { it.position > 1000 }
@@ -172,6 +188,7 @@ class LibraryController(
         profile = p
         works = visible
         sources = sourceList
+        exactGrants = exact
         decisions = decisionMap
         favorites = favoriteIds
         history = progressList
@@ -298,6 +315,12 @@ class LibraryController(
         currentCoroutineContext().ensureActive()
         check(parent())
         repo.dao.version(verified)
+        if (
+            v.id != verified.id &&
+                repo.dao.decision(v.id) == null &&
+                repo.dao.progress(v.id) == null
+        )
+            repo.dao.removeCandidate(v.id)
         repo.auto(verified)
         message = "Файл проверен и сохранён для просмотра без интернета"
     }

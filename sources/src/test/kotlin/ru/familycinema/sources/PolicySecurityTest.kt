@@ -5,6 +5,17 @@ import org.junit.Assert.*
 import org.junit.Test
 
 class PolicySecurityTest {
+    @Test fun streamOnlyAddonDoesNotRequireCatalog() {
+        val client = AddonClient("https://example.org/manifest.json") {
+            """{"id":"streams","name":"Streams","version":"1","types":["movie"],"idPrefixes":["tt"],"resources":["stream"],"catalogs":[]}"""
+        }
+        val manifest = client.manifest()
+        assertTrue(manifest.catalogs.isEmpty())
+        assertEquals(setOf("stream"), manifest.resources)
+        assertEquals(setOf("tt"), manifest.idPrefixes)
+        assertEquals(setOf("movie"), manifest.types)
+    }
+
     @Test
     fun automaticRequiresEveryCondition() {
         val good = ApprovalInput(true, true, true, true, 6, 12, false)
@@ -97,5 +108,18 @@ class PolicySecurityTest {
         assertTrue(requests.last().contains("/search=%D1%91%D0%B6%D0%B8%D0%BA%20%2F%20%26.json"))
         assertEquals(2, client.streams("movie", "one").size)
         assertEquals("rus", client.subtitles("movie", "one").first().lang)
+    }
+
+    @Test
+    fun excessiveJsonAndPrivateDnsBecomeControlledFailures() {
+        assertTrue(
+            runCatching { SafeNetwork.dns.lookup("localhost") }.exceptionOrNull()
+                is java.net.UnknownHostException
+        )
+        assertTrue(
+            runCatching { JsonEnvelope.parse("[".repeat(100) + "0" + "]".repeat(100)) }
+                .exceptionOrNull() is IllegalArgumentException
+        )
+        assertEquals("[]", JsonEnvelope.parse("[]").toString())
     }
 }

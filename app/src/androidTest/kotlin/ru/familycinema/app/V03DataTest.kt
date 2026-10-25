@@ -66,6 +66,7 @@ class V03DataTest {
                     CinemaDatabase.MIGRATION_1_2,
                     CinemaDatabase.MIGRATION_2_3,
                     CinemaDatabase.MIGRATION_3_4,
+                    CinemaDatabase.MIGRATION_4_5,
                 )
                 .build()
         assertEquals("Сохранённый фильм", db.library().works().single().title)
@@ -109,6 +110,7 @@ class V03DataTest {
                 file = media.absolutePath,
                 sha256 = GeneratedDemo.sha256,
                 verified = true,
+                expectedSha256 = GeneratedDemo.sha256,
             )
         repo.dao.version(v)
         repo.auto(v)
