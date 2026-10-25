@@ -32,9 +32,13 @@ class FamilyStore(context: Context) {
             )
 
     fun approve(film: Film, allowed: Boolean) {
-        prefs
-            .edit()
+        // A manual revoke must not be silently undone by the auto-approval policy.
+        prefs.edit()
             .putString("approval_${film.id}", if (allowed) film.version.fingerprint else "")
+            .apply {
+                if (allowed) remove("denied_${film.id}")
+                else putString("denied_${film.id}", film.version.fingerprint)
+            }
             .commit()
     }
 
@@ -65,7 +69,8 @@ class FamilyStore(context: Context) {
      */
     fun maybeAutoApprove(film: Film, eligible: Boolean): Boolean {
         if (!autoApprove || !eligible) return false
-        approve(film, true)
+        if (prefs.getString("denied_${film.id}", null) == film.version.fingerprint) return false
+        prefs.edit().putString("approval_${film.id}", film.version.fingerprint).commit()
         return approved(film)
     }
 
