@@ -102,7 +102,7 @@
     <string name="trust_title">Доверять этому источнику?</string>
     <string name="trust_body">Автоодобрение касается только проверенных копий с известным подходящим возрастом. Вы отвечаете за выбор источника и права на контент.</string>
     <string name="work_title">Название произведения</string>
-    <string name="age_hint">Возраст 0–21; пусто — неизвестен</string>
+    <string name="age_hint">Возраст (0–21)</string>
     <string name="series">Сериал</string>
     <string name="season">Сезон</string>
     <string name="episode">Серия</string>
@@ -148,4 +148,5 @@
     <string name="picker_expired">Время выбора файла истекло. Выберите файл ещё раз в родительском режиме.</string>
     <string name="local_source">Личные файлы</string>
     <string name="local_source_capabilities">Проверенные приватные копии с устройства. Доверие выключено, пока его не подтвердит родитель.</string>
+    <string name="personal_video_version">Личный видеофайл</string>
 </resources>

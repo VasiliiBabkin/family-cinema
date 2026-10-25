@@ -32,7 +32,9 @@ class FlowV03Test {
     private fun click(tag: String) {
         if (tag == "library_confirm")
             ui.waitUntil(15000) { ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isNotEmpty() }
-        if (ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isEmpty()) {
+        if (
+            tag.startsWith("version_") || ui.onAllNodesWithTag(tag).fetchSemanticsNodes().isEmpty()
+        ) {
             ui.onAllNodes(hasScrollToIndexAction()).onFirst().performScrollToNode(hasTestTag(tag))
         }
         val node = ui.onNodeWithTag(tag)
@@ -158,6 +160,7 @@ class FlowV03Test {
         screen(Screen.LIBRARY)
         idle()
         ui.onNodeWithTag("library_search").performTextReplacement("Теплый")
+        ui.onNodeWithTag("library_search").performImeAction()
         capture("library")
         if (layout == "tv") {
             ui.onNodeWithTag("work_${imported.id}")

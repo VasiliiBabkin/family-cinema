@@ -19,6 +19,8 @@ import ru.familycinema.app.ui.*
 
 @Composable
 internal fun CatalogPage(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
+    val keyboard = LocalSoftwareKeyboardController.current
+    val focus = LocalFocusManager.current
     val c = model.library
     val list = c.filtered()
     Column(Modifier.fillMaxSize().padding(horizontal = if (tv) 40.dp else 20.dp)) {
@@ -41,10 +43,23 @@ internal fun CatalogPage(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
                 label = { Text(s(R.string.search_title)) },
                 leadingIcon = { Icon(Icons.Rounded.Search, null) },
                 singleLine = true,
+                keyboardOptions =
+                    androidx.compose.foundation.text.KeyboardOptions(imeAction = ImeAction.Search),
+                keyboardActions =
+                    androidx.compose.foundation.text.KeyboardActions(
+                        onSearch = {
+                            keyboard?.hide()
+                            focus.clearFocus()
+                        }
+                    ),
             )
             if (model.parent)
                 Button(
-                    onClick = { c.discover(c.query.isNotBlank()) },
+                    onClick = {
+                        keyboard?.hide()
+                        focus.clearFocus()
+                        c.discover(c.query.isNotBlank())
+                    },
                     enabled = !c.busy,
                     modifier = Modifier.testTag("search_online").cinemaFocus(),
                 ) {

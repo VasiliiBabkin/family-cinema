@@ -590,7 +590,7 @@ class LibraryRepository(val context: Context) {
                     id,
                     episode?.id ?: "",
                     "local",
-                    file.name.take(16),
+                    context.getString(ru.familycinema.app.R.string.personal_video_version),
                     vault.seal(uri.toString()),
                     file.absolutePath,
                     hash,
