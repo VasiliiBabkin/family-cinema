@@ -71,7 +71,7 @@ private val Gold=Color(0xFFF5C678)
  val approved=remember(revision) { store.approved(film) }
  val dark=parent || screen=="pin" || screen=="player"
  MaterialTheme(colorScheme=if(dark) darkColorScheme(primary=Gold,background=Ink,surface=Color(0xFF22334D)) else lightColorScheme(primary=Color(0xFF395648),background=Color(0xFFFFF5E5),surface=Color(0xFFFFE9C6))) {
-  Surface(Modifier.fillMaxSize()) {
+  Surface(Modifier.fillMaxSize().safeDrawingPadding()) {
    BackHandler(screen!="catalog") { screen=if(screen=="player") "details" else "catalog" }
    if(screen=="player") {
     if(parent || approved) VideoScreen(film,store) { screen="details" } else LaunchedEffect(Unit) { screen="catalog" }

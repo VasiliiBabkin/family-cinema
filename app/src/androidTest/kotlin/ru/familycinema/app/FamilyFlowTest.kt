@@ -16,7 +16,11 @@ import ru.familycinema.parental.FamilyStore
 @androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class FamilyFlowTest {
  @get:Rule val ui=createAndroidComposeRule<MainActivity>()
- private fun click(text: String) { ui.onNodeWithText(text).performScrollTo().performClick();ui.waitForIdle() }
+ private fun click(text: String) {
+  val node=ui.onNodeWithText(text)
+  if(text!="К карточке") node.performScrollTo()
+  node.performClick();ui.waitForIdle()
+ }
  private fun pin(value: String) { value.forEach { click(it.toString()) };click("Подтвердить") }
  private fun findPlayer(v: View): PlayerView? {
   if(v is PlayerView) return v
