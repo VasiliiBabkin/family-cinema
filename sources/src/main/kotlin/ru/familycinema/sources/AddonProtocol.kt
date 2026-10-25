@@ -77,10 +77,11 @@ class AddonProtocol(
     suspend fun search(type: String, catalogId: String, query: String): List<AddonCatalogItem> {
         require(type in setOf("movie", "series", "channel", "tv"))
         require(query.isNotBlank() && query.length <= 200)
-        val request = endpoint.resource(
-            "catalog", type, catalogId, "search=${query.trim()}.json"
-        )
-        // Protocol extra args use a path segment. resource() percent-encodes the query.
+        val encodedQuery = URLEncoder.encode(query.trim(), StandardCharsets.UTF_8)
+            .replace("+", "%20")
+        val request = URI(endpoint.resource("catalog", type, catalogId).toString() +
+            "/search=" + encodedQuery + ".json")
+        // The Stremio protocol requires a literal search= prefix in this segment.
         val json = Json.parseToJsonElement(transport.getJson(request)).obj()
         val items = json["metas"] as? JsonArray ?: return emptyList()
         return items.take(100).mapNotNull {
