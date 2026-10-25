@@ -91,8 +91,8 @@ class AddonClient(
     }
 
     private fun work(j: JsonObject, fallbackType: String): RemoteWork? {
-        val id = j.str("id") ?: return null
-        val name = j.str("name") ?: return null
+        val id = j.str("id")?.takeIf { it.isNotBlank() && it.length <= 512 } ?: return null
+        val name = j.str("name")?.take(300)?.takeIf { it.isNotBlank() } ?: return null
         val episodes =
             j.arr("videos")
                 .take(1000)
@@ -107,11 +107,11 @@ class AddonClient(
             id,
             j.str("type") ?: fallbackType,
             name,
-            j.str("originalName") ?: "",
+            j.str("originalName")?.take(300) ?: "",
             j.arr("alternativeNames")
                 .mapNotNull { (it as? JsonPrimitive)?.contentOrNull }
                 .joinToString(" | "),
-            j.str("description") ?: "",
+            j.str("description")?.take(20000) ?: "",
             j.str("releaseInfo")?.take(4)?.toIntOrNull(),
             j.str("ageRating")?.toIntOrNull()?.takeIf { it in 0..21 },
             j.arr("genres").mapNotNull { (it as? JsonPrimitive)?.contentOrNull }.joinToString(", "),

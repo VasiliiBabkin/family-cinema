@@ -62,6 +62,7 @@ class LibraryController(
     var onlyHistory by mutableStateOf(false)
     private var job: Job? = null
     private var generation = 0
+    private var operation = 0
 
     init {
         scope.launch {
@@ -94,10 +95,13 @@ class LibraryController(
     private fun action(requireParent: Boolean = true, block: suspend () -> Unit) {
         if (requireParent && !parent()) return
         job?.cancel()
+        repo.cancelNetworking()
         val captured = generation
+        val currentOperation = ++operation
         job =
             scope.launch {
                 busy = true
+                repo.resetTransfer()
                 message = ""
                 try {
                     block()
@@ -120,30 +124,62 @@ class LibraryController(
                                 "Не удалось выполнить действие. Источник может быть недоступен или формат не поддерживается."
                         }
                 } finally {
-                    if (captured == generation) busy = false
+                    if (captured == generation && currentOperation == operation) busy = false
                 }
             }
     }
 
+    fun pickerUnavailable() {
+        message = repo.context.getString(ru.familycinema.app.R.string.picker_unavailable)
+    }
+
+    fun pickerExpired() {
+        message = repo.context.getString(ru.familycinema.app.R.string.picker_expired)
+    }
+
+    fun cancel() {
+        ++operation
+        job?.cancel()
+        repo.cancelNetworking()
+        busy = false
+        message = repo.context.getString(ru.familycinema.app.R.string.operation_cancelled)
+    }
+
     suspend fun refresh() {
-        profile = repo.profile()
-        works = repo.visible(parent())
-        sources = if (parent()) repo.dao.sources() else emptyList()
-        decisions = repo.dao.decisions().associateBy { it.versionId }
-        favorites = repo.dao.favorites().map { it.workId }.toSet()
-        history = repo.dao.history()
-        historyWorkIds = history.mapNotNull { repo.dao.version(it.versionId)?.workId }.toSet()
-        audit = if (parent()) repo.dao.audit() else emptyList()
-        selected?.let { old ->
-            selected = works.find { it.id == old.id }
-            if (selected != null) {
-                episodes = repo.dao.episodes(old.id)
-                versions = repo.dao.versions(old.id).filter { parent() || repo.allowed(it) }
-            } else {
-                versions = emptyList()
-                episodes = emptyList()
-            }
-        }
+        val captured = generation
+        val role = parent()
+        val p = repo.profile()
+        val visible = repo.visible(role)
+        val sourceList = if (role) repo.dao.sources() else emptyList()
+        val decisionMap = repo.dao.decisions().associateBy { it.versionId }
+        val favoriteIds = repo.dao.favorites().map { it.workId }.toSet()
+        val progressList = repo.dao.history()
+        val historyIds = progressList.mapNotNull { repo.dao.version(it.versionId)?.workId }.toSet()
+        val auditList = if (role) repo.dao.audit() else emptyList()
+        val selection = selected?.let { old -> visible.find { it.id == old.id } }
+        val episodeList = selection?.let { repo.dao.episodes(it.id) } ?: emptyList()
+        val versionList =
+            selection?.let { repo.dao.versions(it.id).filter { role || repo.allowed(it) } }
+                ?: emptyList()
+        val progressIds =
+            progressList
+                .filter { it.position > 1000 }
+                .mapNotNull { repo.dao.version(it.versionId)?.workId }
+                .toSet()
+        currentCoroutineContext().ensureActive()
+        if (captured != generation || role != parent()) return
+        inProgressWorkIds = progressIds
+        profile = p
+        works = visible
+        sources = sourceList
+        decisions = decisionMap
+        favorites = favoriteIds
+        history = progressList
+        historyWorkIds = historyIds
+        audit = auditList
+        selected = selection
+        episodes = episodeList
+        versions = versionList
     }
 
     fun reload() = action(false) { refresh() }
@@ -155,6 +191,9 @@ class LibraryController(
                 (!onlyHistory || it.id in historyWorkIds)
         }
     }
+
+    var inProgressWorkIds by mutableStateOf<Set<String>>(emptySet())
+        private set
 
     var historyWorkIds by mutableStateOf<Set<String>>(emptySet())
         private set
@@ -200,7 +239,8 @@ class LibraryController(
     fun discover(search: Boolean) = action {
         var successes = 0
         var failures = 0
-        for (source in repo.dao.sources().filter { it.enabled && it.id != "direct" }) {
+        for (source in
+            repo.dao.sources().filter { it.enabled && it.id !in setOf("direct", "local") }) {
             try {
                 val items =
                     withContext(Dispatchers.IO) {
@@ -264,6 +304,13 @@ class LibraryController(
 
     fun decide(v: Version, allow: Boolean) = action { repo.decide(v, allow) }
 
+    fun preview(v: Version) = action {
+        val film = repo.streamingFilm(v)
+        currentCoroutineContext().ensureActive()
+        check(parent())
+        play(film, false, 0L)
+    }
+
     fun launch(v: Version) =
         action(false) {
             val current = repo.dao.version(v.id) ?: return@action
@@ -272,7 +319,7 @@ class LibraryController(
             val film = repo.film(current)
             currentCoroutineContext().ensureActive()
             check(parent() || repo.allowed(current))
-            play(film, allowed, repo.dao.progress(current.id)?.position ?: 0L)
+            play(film, allowed, if (parent()) 0L else repo.dao.progress(current.id)?.position ?: 0L)
         }
 
     fun favorite(w: Work) =
@@ -300,6 +347,13 @@ class LibraryController(
             check(parent())
             repo.auto(v)
         }
+    }
+
+    fun editMetadata(work: Work) = action {
+        require(work.title.isNotBlank() && work.title.length <= 300)
+        require(work.age == null || work.age in 0..21)
+        repo.dao.work(work)
+        selected = work
     }
 
     fun editAge(w: Work, age: Int?) = action {
@@ -332,13 +386,10 @@ class LibraryController(
 
     fun checkpoint(id: String, position: Long) {
         scope.launch {
-            if (ready)
-                repo.dao.progress(
-                    Progress(
-                        versionId = if (id == "quiet-evening") "demo" else id,
-                        position = position,
-                    )
-                )
+            if (!ready) return@launch
+            val key = if (id == "quiet-evening") "demo" else id
+            if (position > 0 || repo.dao.progress(key) != null)
+                repo.dao.progress(Progress(versionId = key, position = position))
         }
     }
 }

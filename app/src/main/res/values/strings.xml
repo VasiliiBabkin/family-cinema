@@ -134,4 +134,23 @@
     <string name="cleanup_note">Разрешённые детям файлы останутся. Остальные копии потребуется импортировать заново.</string>
     <string name="audit_title">Журнал решений</string>
     <string name="confirm_action">Подтвердить</string>
+    <string name="edit_metadata">Изменить описание</string>
+    <string name="original_title">Оригинальное название</string>
+    <string name="aliases">Другие названия</string>
+    <string name="description">Описание</string>
+    <string name="release_year">Год выпуска</string>
+    <string name="genres">Жанры</string>
+    <string name="approval_origin_manual">Вручную</string>
+    <string name="approval_origin_automatic">Автоматически</string>
+    <string name="approval_origin_migration">Перенесено</string>
+    <string name="disk_usage">%1$d из %2$d МБ</string>
+    <string name="disk_gb">%1$d ГБ</string>
+    <string name="transfer_progress">%1$d / %2$d МБ получено</string>
+    <string name="transfer_unknown">%1$d МБ получено</string>
+    <string name="working">Выполняется…</string>
+    <string name="operation_cancelled">Действие отменено</string>
+    <string name="picker_unavailable">На устройстве нет системного выбора файлов. Используйте совместимый файловый менеджер, HTTPS-видео или подключённый каталог.</string>
+    <string name="picker_expired">Время выбора файла истекло. Выберите файл ещё раз в родительском режиме.</string>
+    <string name="local_source">Личные файлы</string>
+    <string name="local_source_capabilities">Проверенные приватные копии с устройства. Доверие выключено, пока его не подтвердит родитель.</string>
 </resources>

@@ -20,7 +20,12 @@ class MainActivity : ComponentActivity() {
     fun chooseVideo(title: String, age: Int?, series: Boolean, season: Int, number: Int) {
         if (!cinema.parent) return
         cinema.prepareImport(title, age, series, season, number)
-        filePicker.launch(arrayOf("video/*"))
+        try {
+            filePicker.launch(arrayOf("video/*"))
+        } catch (_: android.content.ActivityNotFoundException) {
+            cinema.acceptPickedFile(null)
+            cinema.library.pickerUnavailable()
+        }
     }
 
     override fun attachBaseContext(base: Context) {

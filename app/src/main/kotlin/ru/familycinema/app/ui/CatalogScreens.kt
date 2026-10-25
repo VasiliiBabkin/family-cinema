@@ -183,6 +183,14 @@ private fun ChildFilmActions(model: CinemaViewModel, tv: Boolean, wide: Boolean)
 
 @Composable
 fun ParentCatalog(model: CinemaViewModel, tv: Boolean) {
+    if (model.library.works.any { it.id != "demo" }) {
+        ru.familycinema.app.library.LibraryUi(
+            model,
+            tv || androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600,
+            tv,
+        )
+        return
+    }
     if (tv) {
         TvParentCatalog(model)
         return
@@ -251,7 +259,6 @@ fun ParentCatalog(model: CinemaViewModel, tv: Boolean) {
             )
         }
         ru.familycinema.app.library.LibraryEntry(model, true)
-        AutoApprovalSetting(model)
         Text(
             stringResource(R.string.security_note),
             style = MaterialTheme.typography.bodySmall,
@@ -435,62 +442,3 @@ fun FilmDetails(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
 }
 
 /** Only rendered inside the authenticated parent screen. */
-@Composable
-fun AutoApprovalSetting(model: CinemaViewModel) {
-    if (!model.parent) return
-    var confirmEnable by remember { mutableStateOf(false) }
-    Card(
-        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
-    ) {
-        Column(
-            Modifier.fillMaxWidth().padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp),
-        ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Column(Modifier.weight(1f)) {
-                    Text(
-                        stringResource(R.string.auto_approval_title),
-                        style = MaterialTheme.typography.titleMedium,
-                    )
-                    Text(
-                        stringResource(R.string.auto_approval_description),
-                        style = MaterialTheme.typography.bodySmall,
-                    )
-                }
-                Switch(
-                    checked = model.autoApprove,
-                    onCheckedChange = { enabled ->
-                        if (enabled) confirmEnable = true else model.setAutoApprove(false)
-                    },
-                    modifier = Modifier.testTag("auto_approval_switch"),
-                )
-            }
-            Text(
-                stringResource(R.string.auto_approval_scope),
-                style = MaterialTheme.typography.bodySmall,
-            )
-        }
-    }
-    if (confirmEnable) {
-        AlertDialog(
-            onDismissRequest = { confirmEnable = false },
-            title = { Text(stringResource(R.string.auto_approval_confirm_title)) },
-            text = { Text(stringResource(R.string.auto_approval_confirm_body)) },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        model.setAutoApprove(true)
-                        confirmEnable = false
-                    }
-                ) {
-                    Text(stringResource(R.string.auto_approval_enable))
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { confirmEnable = false }) {
-                    Text(stringResource(R.string.back))
-                }
-            },
-        )
-    }
-}

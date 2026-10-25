@@ -40,6 +40,7 @@ enum class PinError {
     LOCKED,
 }
 
+@androidx.annotation.OptIn(androidx.media3.common.util.UnstableApi::class)
 class CinemaViewModel(application: Application) : AndroidViewModel(application) {
     val store = FamilyStore(application)
     var film by mutableStateOf(DemoCatalog.films().first())
@@ -167,6 +168,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
 
     private var opening: kotlinx.coroutines.Job? = null
     private var libraryPlayback = false
+    private var previewOnly = false
     val library =
         ru.familycinema.app.library.LibraryController(application, viewModelScope, { parent }) {
             selected,
@@ -176,7 +178,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
                 film = selected
                 approved = allowed
                 position = saved
-                store.savePosition(film.id, saved)
+                previewOnly = parent
                 libraryPlayback = true
                 play()
             }
@@ -233,7 +235,12 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
         val uri = pickedUri ?: return
         pendingImport = null
         pickedUri = null
-        if (!parent || android.os.SystemClock.elapsedRealtime() - request.started > 300000) return
+        if (!parent) return
+        if (android.os.SystemClock.elapsedRealtime() - request.started > 300000) {
+            screen = Screen.SOURCES
+            library.pickerExpired()
+            return
+        }
         library.import(
             uri,
             request.title,
@@ -247,6 +254,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
 
     private fun resetDemo() {
         libraryPlayback = false
+        previewOnly = false
         film = DemoCatalog.films().first()
         approved = store.approved(film)
         position = store.position(film.id)
@@ -363,6 +371,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
                 if (foreground && screen == Screen.PIN) {
                     parent = true
                     screen = Screen.PARENT
+                    library.reload()
                     finishImport()
                 }
             } else {
@@ -386,14 +395,25 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
         opening?.cancel()
         opening =
             viewModelScope.launch {
-                val verified = runCatching { library.repo.verifyFilm(film) }.getOrDefault(false)
+                val verified =
+                    runCatching {
+                            if (parent && film.version.sha256.isBlank()) {
+                                ru.familycinema.sources.SafeNetwork.validate(film.version.uri)
+                                true
+                            } else library.repo.verifyFilm(film)
+                        }
+                        .getOrDefault(false)
                 if (!verified) {
                     verificationFailed = true
                     return@launch
                 }
                 if (screen != Screen.PLAYER || (!parent && !approved)) return@launch
                 player =
-                    Playback.create(getApplication(), film.version.uri, store.position(film.id))
+                    Playback.create(
+                            getApplication(),
+                            film.version.uri,
+                            if (libraryPlayback) position else store.position(film.id),
+                        )
                         .apply {
                             playWhenReady = foreground
                             addListener(
@@ -428,7 +448,7 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
                                                 ?: 40000L
                                         if (playbackState == Player.STATE_ENDED) {
                                             position = 0
-                                            store.savePosition(film.id, 0)
+                                            if (!previewOnly) store.savePosition(film.id, 0)
                                             showControls()
                                         }
                                     }
@@ -452,8 +472,10 @@ class CinemaViewModel(application: Application) : AndroidViewModel(application) 
                 if (it.playbackState == Player.STATE_ENDED) 0
                 else it.currentPosition.coerceAtLeast(0)
         }
-        store.savePosition(film.id, position)
-        library.checkpoint(film.id, position)
+        if (!previewOnly) {
+            store.savePosition(film.id, position)
+            library.checkpoint(film.id, position)
+        }
     }
 
     private fun closePlayer() {

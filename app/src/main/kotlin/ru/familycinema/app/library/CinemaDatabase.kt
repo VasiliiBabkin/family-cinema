@@ -78,6 +78,7 @@ data class Decision(
     val allowed: Boolean,
     val manualDeny: Boolean = false,
     val origin: String = "manual",
+    @ColumnInfo(defaultValue = "''") val contentHash: String = "",
     val at: Long = System.currentTimeMillis(),
 )
 
@@ -101,8 +102,29 @@ data class Audit(
     val at: Long = System.currentTimeMillis(),
 )
 
+@Entity(
+    tableName = "work_sources",
+    primaryKeys = ["workId", "sourceId"],
+    foreignKeys =
+        [
+            ForeignKey(
+                entity = Work::class,
+                parentColumns = ["id"],
+                childColumns = ["workId"],
+                onDelete = ForeignKey.CASCADE,
+            )
+        ],
+    indices = [Index("sourceId")],
+)
+data class WorkSource(val workId: String, val sourceId: String, val remoteId: String)
+
 @Dao
 interface LibraryDao {
+    @Upsert suspend fun link(value: WorkSource)
+
+    @Query("SELECT * FROM work_sources WHERE workId=:id")
+    suspend fun links(id: String): List<WorkSource>
+
     @Query("SELECT * FROM works ORDER BY title COLLATE NOCASE") fun observeWorks(): Flow<List<Work>>
 
     @Query("SELECT * FROM works ORDER BY title COLLATE NOCASE") suspend fun works(): List<Work>
@@ -174,14 +196,42 @@ interface LibraryDao {
             Progress::class,
             Favorite::class,
             Audit::class,
+            WorkSource::class,
         ],
-    version = 2,
+    version = 4,
     exportSchema = true,
 )
 abstract class CinemaDatabase : RoomDatabase() {
     abstract fun library(): LibraryDao
 
     companion object {
+        val MIGRATION_3_4 =
+            object : Migration(3, 4) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "ALTER TABLE `decisions` ADD COLUMN `contentHash` TEXT NOT NULL DEFAULT ''"
+                    )
+                    db.execSQL(
+                        "UPDATE decisions SET contentHash=COALESCE((SELECT sha256 FROM versions WHERE versions.id=decisions.versionId),'')"
+                    )
+                }
+            }
+
+        val MIGRATION_2_3 =
+            object : Migration(2, 3) {
+                override fun migrate(db: SupportSQLiteDatabase) {
+                    db.execSQL(
+                        "CREATE TABLE IF NOT EXISTS `work_sources` (`workId` TEXT NOT NULL, `sourceId` TEXT NOT NULL, `remoteId` TEXT NOT NULL, PRIMARY KEY(`workId`,`sourceId`), FOREIGN KEY(`workId`) REFERENCES `works`(`id`) ON UPDATE NO ACTION ON DELETE CASCADE)"
+                    )
+                    db.execSQL(
+                        "CREATE INDEX IF NOT EXISTS `index_work_sources_sourceId` ON `work_sources` (`sourceId`)"
+                    )
+                    db.execSQL(
+                        "INSERT OR IGNORE INTO work_sources(workId,sourceId,remoteId) SELECT id,sourceId,remoteId FROM works WHERE sourceId NOT IN ('local','direct')"
+                    )
+                }
+            }
+
         // v1 is the initial Room catalog schema; v2 introduces persistent decision audit.
         val MIGRATION_1_2 =
             object : Migration(1, 2) {
@@ -202,7 +252,7 @@ abstract class CinemaDatabase : RoomDatabase() {
                                 CinemaDatabase::class.java,
                                 "cinema.db",
                             )
-                            .addMigrations(MIGRATION_1_2)
+                            .addMigrations(MIGRATION_1_2, MIGRATION_2_3, MIGRATION_3_4)
                             .build()
                             .also { instance = it }
                 }

@@ -33,7 +33,8 @@ class FamilyStore(context: Context) {
 
     fun approve(film: Film, allowed: Boolean) {
         // A manual revoke must not be silently undone by the auto-approval policy.
-        prefs.edit()
+        prefs
+            .edit()
             .putString("approval_${film.id}", if (allowed) film.version.fingerprint else "")
             .apply {
                 if (allowed) remove("denied_${film.id}")
@@ -49,29 +50,6 @@ class FamilyStore(context: Context) {
 
     fun savePosition(id: String, value: Long) {
         prefs.edit().putLong("position_$id", value.coerceAtLeast(0)).apply()
-    }
-
-    /**
-     * Opt-in parent setting. OFF for new and upgraded installations.
-     * Automatic approval is still bound to the exact fingerprint, never a title.
-     * Callers must enforce a verified parent session before changing this flag.
-     */
-    var autoApprove: Boolean
-        get() = prefs.getBoolean("auto_approve", false)
-        set(value) {
-            prefs.edit().putBoolean("auto_approve", value).commit()
-        }
-
-    /**
-     * Apply a verified parent's policy to a discovered, concrete media version.
-     * Never call this from untrusted child search, raw search results, or before
-     * content identity and eligibility have been validated.
-     */
-    fun maybeAutoApprove(film: Film, eligible: Boolean): Boolean {
-        if (!autoApprove || !eligible) return false
-        if (prefs.getString("denied_${film.id}", null) == film.version.fingerprint) return false
-        prefs.edit().putString("approval_${film.id}", film.version.fingerprint).commit()
-        return approved(film)
     }
 
     var failedAttempts: Int

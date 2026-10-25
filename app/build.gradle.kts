@@ -52,3 +52,17 @@ dependencies {
 }
 
 android { sourceSets["androidTest"].assets.srcDir("schemas"); sourceSets["androidTest"].assets.srcDir("src/main/assets") }
+
+android { defaultConfig { if (providers.gradleProperty("arm64Only").isPresent) ndk { abiFilters += "arm64-v8a" } } }
+
+// The explicit arm64Only delivery is not a ChromeOS build; the default build remains universal.
+android { lint { disable += "ChromeOsAbiSupport" } }
+
+val generateQaMedia by tasks.registering {
+ dependsOn(generateDemo)
+ val clip=layout.buildDirectory.file("generated/qa-media/short-evening.mp4")
+ outputs.file(clip)
+ doLast { clip.get().asFile.parentFile.mkdirs();exec {commandLine("ffmpeg","-y","-v","error","-i",rootProject.file("app/src/main/assets/quiet-evening.mp4"),"-t","5","-c","copy",clip.get().asFile)} }
+}
+android { sourceSets["androidTest"].assets.srcDir(layout.buildDirectory.dir("generated/qa-media")) }
+tasks.matching {it.name=="preDebugAndroidTestBuild"}.configureEach {dependsOn(generateQaMedia)}

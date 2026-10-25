@@ -1,0 +1,6 @@
+jlibtorrent: Trying to load jlibtorrent from classpath resource
+jlibtorrent: Extracted and loading native library from classpath to: /tmp/jlibtorrent-13718418876413804533.so
+jlibtorrent: SUCCESS: Loaded jlibtorrent from classpath resource (version=2.0.12.9)
+PASS: owned metadata 1 file, 356958 bytes, 22 pieces; native session start/pause
+No download added; DHT/LSD/UPnP/NAT-PMP disabled; loopback listen only.
+PASS: native session stopped. Peer transfer, Android lifecycle and ARM64 runtime NOT TESTED.

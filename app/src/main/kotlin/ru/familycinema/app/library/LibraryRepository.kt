@@ -13,7 +13,16 @@ import ru.familycinema.domain.*
 import ru.familycinema.parental.FamilyStore
 import ru.familycinema.sources.*
 
+data class Transfer(val bytes: Long = 0, val total: Long = -1)
+
 class LibraryRepository(val context: Context) {
+    private val transferState = kotlinx.coroutines.flow.MutableStateFlow(Transfer())
+    val transfer: kotlinx.coroutines.flow.StateFlow<Transfer> = transferState
+
+    fun resetTransfer() {
+        transferState.value = Transfer()
+    }
+
     val db = CinemaDatabase.get(context)
     val dao = db.library()
     private val vault = SourceVault()
@@ -38,11 +47,25 @@ class LibraryRepository(val context: Context) {
 
     fun cancelNetworking() {
         SafeNetwork.client.dispatcher.cancelAll()
+        SafeNetwork.client.connectionPool.evictAll()
     }
 
     suspend fun initialize() =
         withContext(Dispatchers.IO) {
             db.withTransaction {
+                if (dao.source("local") == null)
+                    dao.source(
+                        Source(
+                            "local",
+                            context.getString(ru.familycinema.app.R.string.local_source),
+                            vault.seal("asset:///"),
+                            rights = true,
+                            capabilities =
+                                context.getString(
+                                    ru.familycinema.app.R.string.local_source_capabilities
+                                ),
+                        )
+                    )
                 if (dao.profile() == null)
                     dao.profile(
                         Profile()
@@ -83,7 +106,10 @@ class LibraryRepository(val context: Context) {
                                 origin = "migration",
                             )
                         )
-                    dao.progress(Progress(versionId = "demo", position = store.position(film.id)))
+                    if (store.position(film.id) > 0)
+                        dao.progress(
+                            Progress(versionId = "demo", position = store.position(film.id))
+                        )
                     dao.audit(
                         Audit(
                             event = "Миграция 0.2",
@@ -100,6 +126,7 @@ class LibraryRepository(val context: Context) {
 
     fun allowed(v: Version, w: Work, p: Profile, d: Decision?) =
         v.verified &&
+            (v.id != "demo" || FamilyStore(context).approved(DemoCatalog.films().first())) &&
             v.sha256.length == 64 &&
             w.age != null &&
             w.age <= p.ageLimit &&
@@ -133,6 +160,7 @@ class LibraryRepository(val context: Context) {
                     fingerprint = fingerprint(current),
                     allowed = allow,
                     manualDeny = !allow,
+                    contentHash = current.sha256,
                 )
             )
             dao.audit(
@@ -151,6 +179,10 @@ class LibraryRepository(val context: Context) {
             val w = dao.work(v.workId) ?: return@withTransaction
             val source = dao.source(v.sourceId)
             val old = dao.decision(v.id)
+            val contentDenied =
+                dao.decisions().any {
+                    it.manualDeny && it.contentHash.isNotEmpty() && it.contentHash == v.sha256
+                }
             val eligibility =
                 ApprovalInput(
                     p.autoApprove,
@@ -159,7 +191,7 @@ class LibraryRepository(val context: Context) {
                     v.verified,
                     w.age,
                     p.ageLimit,
-                    old?.manualDeny == true,
+                    old?.manualDeny == true || contentDenied,
                 )
             if (ApprovalPolicy.allows(eligibility) && !allowed(v, w, p, old)) {
                 dao.decision(
@@ -168,6 +200,7 @@ class LibraryRepository(val context: Context) {
                         fingerprint = fingerprint(v),
                         allowed = true,
                         origin = "automatic",
+                        contentHash = v.sha256,
                     )
                 )
                 dao.audit(
@@ -212,42 +245,58 @@ class LibraryRepository(val context: Context) {
 
     fun client(source: Source) = AddonClient(vault.open(source.endpoint))
 
-    suspend fun cache(source: Source, remote: RemoteWork): Work {
-        val id = digest("${source.id}|${remote.type}|${remote.id}")
-        val old = dao.work(id)
-        val work =
-            Work(
-                id,
-                source.id,
-                remote.id,
-                remote.type,
-                remote.title,
-                remote.original,
-                remote.aliases,
-                remote.description,
-                remote.year,
-                remote.genres,
-                old?.age ?: remote.age,
-                old?.poster?.takeIf { it.startsWith(context.filesDir.absolutePath) }
-                    ?: remote.poster?.takeIf {
-                        runCatching { SafeNetwork.validate(it).query == null }.getOrDefault(false)
+    suspend fun cache(source: Source, remote: RemoteWork): Work =
+        withContext(Dispatchers.IO) {
+            val id =
+                if (remote.id.matches(Regex("tt[0-9]{5,12}")))
+                    digest("external|${remote.type}|${remote.id}")
+                else digest("${source.id}|${remote.type}|${remote.id}")
+            val old = dao.work(id)
+            val work =
+                Work(
+                    id,
+                    source.id,
+                    remote.id,
+                    remote.type,
+                    remote.title,
+                    remote.original,
+                    remote.aliases,
+                    remote.description,
+                    remote.year,
+                    remote.genres,
+                    old?.age ?: remote.age,
+                    old?.poster?.takeIf { it.startsWith(context.filesDir.absolutePath) }
+                        ?: remote.poster?.let {
+                            runCatching {
+                                    "remote:" + vault.seal(SafeNetwork.validate(it).toString())
+                                }
+                                .getOrNull()
+                        },
+                    remote.background?.let {
+                        runCatching { "remote:" + vault.seal(SafeNetwork.validate(it).toString()) }
+                            .getOrNull()
                     },
-                null,
-                source.title,
-            )
-        db.withTransaction {
-            dao.work(work)
-            remote.episodes.forEach { e ->
-                dao.episode(Episode(digest("$id|${e.id}"), id, e.id, e.season, e.number, e.title))
+                    source.title,
+                )
+            db.withTransaction {
+                dao.work(work)
+                dao.link(WorkSource(id, source.id, remote.id))
+                remote.episodes.forEach { e ->
+                    dao.episode(
+                        Episode(digest("$id|${e.id}"), id, e.id, e.season, e.number, e.title)
+                    )
+                }
             }
+            work
         }
-        return work
-    }
 
     suspend fun cachePoster(work: Work): Work =
         withContext(Dispatchers.IO) {
-            val url = work.poster ?: return@withContext work
-            if (url.startsWith(context.filesDir.absolutePath)) return@withContext work
+            val stored = work.poster ?: return@withContext work
+            if (stored.startsWith(context.filesDir.absolutePath)) return@withContext work
+            val url =
+                if (stored.startsWith("remote:")) vault.open(stored.removePrefix("remote:"))
+                else stored
             val source = dao.source(work.sourceId) ?: return@withContext work
             require(source.rights)
             val dir = File(context.filesDir, "posters").apply { mkdirs() }
@@ -288,25 +337,45 @@ class LibraryRepository(val context: Context) {
 
     suspend fun candidates(work: Work, episode: Episode?): List<Version> =
         withContext(Dispatchers.IO) {
-            val source = dao.source(work.sourceId) ?: return@withContext emptyList()
-            require(source.enabled)
-            client(source).streams(work.type, episode?.remoteId ?: work.remoteId).map { s ->
-                val locator = s.url ?: "magnet:?xt=urn:btih:${s.infoHash}"
-                val kind = if (s.url != null) "https" else "torrent"
-                Version(
-                    digest("${work.id}|${episode?.id}|$locator"),
-                    work.id,
-                    episode?.id ?: "",
-                    source.id,
-                    s.title,
-                    vault.seal(locator),
-                    kind = kind,
-                )
+            val links =
+                dao.links(work.id).ifEmpty {
+                    listOf(WorkSource(work.id, work.sourceId, work.remoteId))
+                }
+            val result = mutableListOf<Version>()
+            var errors = 0
+            for (link in links) {
+                val source = dao.source(link.sourceId) ?: continue
+                if (!source.enabled) continue
+                try {
+                    client(source).streams(work.type, episode?.remoteId ?: link.remoteId).forEach {
+                        stream ->
+                        val locator = stream.url ?: "magnet:?xt=urn:btih:${stream.infoHash}"
+                        result +=
+                            Version(
+                                digest("${work.id}|${episode?.id}|${source.id}|$locator"),
+                                work.id,
+                                episode?.id ?: "",
+                                source.id,
+                                stream.title,
+                                vault.seal(locator),
+                                kind = if (stream.url != null) "https" else "torrent",
+                            )
+                    }
+                } catch (e: CancellationException) {
+                    throw e
+                } catch (e: Exception) {
+                    errors++
+                }
             }
+            if (result.isEmpty() && errors > 0) throw java.io.IOException("Источники недоступны")
+            result
         }
 
-    private suspend fun copy(input: InputStream): Pair<File, String> =
+    // Keep a conservative physical reserve; do not reclaim other apps' caches automatically.
+    @android.annotation.SuppressLint("UsableSpace")
+    private suspend fun copy(input: InputStream, total: Long = -1): Pair<File, String> =
         withContext(Dispatchers.IO) {
+            transferState.value = Transfer(0, total)
             val temp = File.createTempFile("incoming-", ".part", media)
             try {
                 val digest = MessageDigest.getInstance("SHA-256")
@@ -327,6 +396,7 @@ class LibraryRepository(val context: Context) {
                         }
                     }
                 }
+                transferState.value = Transfer(bytes, total)
                 require(bytes > 0) { "Пустой файл" }
                 val hash = digest.digest().joinToString("") { "%02x".format(it) }
                 val file = File(media, "$hash.media")
@@ -343,14 +413,14 @@ class LibraryRepository(val context: Context) {
             if (version.verified) return@withContext version
             require(version.kind == "https") { "Торрент-движок в этой сборке не подключён" }
             val url = SafeNetwork.validate(vault.open(version.locator))
-            SafeNetwork.client.newCall(Request.Builder().url(url).build()).execute().use { response
-                ->
+            SafeNetwork.mediaClient.newCall(Request.Builder().url(url).build()).execute().use {
+                response ->
                 require(response.isSuccessful) { "Файл недоступен: HTTP ${response.code}" }
                 val body = response.body ?: error("Нет видео")
                 require(body.contentLength() <= budget - used()) {
                     "Файл превышает свободный лимит"
                 }
-                val (file, sha) = copy(body.byteStream())
+                val (file, sha) = copy(body.byteStream(), body.contentLength())
                 try {
                     inspectVideo(file)
                 } catch (t: Throwable) {
@@ -439,6 +509,7 @@ class LibraryRepository(val context: Context) {
                 dao.work(work)
                 if (episode != null) dao.episode(episode)
                 dao.version(v)
+                auto(v)
                 dao.audit(
                     Audit(
                         event = "Локальный импорт",
@@ -468,6 +539,21 @@ class LibraryRepository(val context: Context) {
             Version(id, id, sourceId = "direct", title = "HTTPS-видео", locator = vault.seal(url))
         )
         return w
+    }
+
+    suspend fun streamingFilm(v: Version): Film {
+        require(v.kind == "https")
+        val url = vault.open(v.locator)
+        SafeNetwork.validate(url)
+        val w = dao.work(v.workId) ?: error("Произведение не найдено")
+        return Film(
+            v.id,
+            w.title,
+            w.description,
+            w.age ?: 0,
+            w.attribution,
+            VideoVersion("preview:${v.id}", url, ""),
+        )
     }
 
     suspend fun film(v: Version): Film =

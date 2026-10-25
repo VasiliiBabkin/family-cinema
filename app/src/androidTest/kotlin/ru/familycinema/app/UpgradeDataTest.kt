@@ -7,7 +7,7 @@ import org.junit.Rule
 import org.junit.Test
 import ru.familycinema.parental.FamilyStore
 
-/** Run with the 0.1.0 APK installed, then install 0.2.0 without clearing data. */
+/** Run with the 0.2.0 APK installed, then install 0.2.0 without clearing data. */
 class UpgradeSeedTest {
     @Test
     fun seedLegacyApproval() {
@@ -23,6 +23,7 @@ class UpgradeSeedTest {
                 .getSharedPreferences("family_private", 0)
                 .edit()
                 .putBoolean("upgrade_fixture_ready", true)
+                .putBoolean("auto_approve", true)
                 .commit()
         )
         assertEquals(12345L, store.position("quiet-evening"))
@@ -41,6 +42,17 @@ class UpgradeVerifyTest {
         assertTrue(store.verify("2468"))
         assertTrue(store.approved(DemoCatalog.films().first()))
         assertEquals(12345L, store.position("quiet-evening"))
+        ui.waitUntil(90000) {
+            var ready = false
+            ui.runOnUiThread { ready = ui.activity.cinema.library.ready }
+            ready
+        }
+        kotlinx.coroutines.runBlocking {
+            val repo = ui.activity.cinema.library.repo
+            assertFalse(repo.profile().autoApprove)
+            assertTrue(repo.allowed(repo.dao.version("demo")!!))
+            assertEquals(12345L, repo.dao.progress("demo")!!.position)
+        }
         ui.runOnUiThread {
             assertEquals(Screen.CHILD, ui.activity.cinema.screen)
             assertFalse(ui.activity.cinema.parent)

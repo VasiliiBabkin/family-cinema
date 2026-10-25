@@ -29,6 +29,12 @@ fun CinemaApp(model: CinemaViewModel) {
     val wide = tv || configuration.screenWidthDp >= 600
     val dark = model.parent || model.screen == Screen.PIN || model.screen == Screen.PLAYER
     val activity = LocalContext.current as Activity
+    val view = androidx.compose.ui.platform.LocalView.current
+    DisposableEffect(model.parent, model.library.busy) {
+        val previous = view.keepScreenOn
+        view.keepScreenOn = model.parent && model.library.busy
+        onDispose { view.keepScreenOn = previous }
+    }
     DisposableEffect(dark) {
         val controller =
             androidx.core.view.WindowInsetsControllerCompat(
