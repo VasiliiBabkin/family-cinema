@@ -1,7 +1,7 @@
 import java.security.MessageDigest
 plugins { id("com.android.application"); kotlin("android"); id("org.jetbrains.kotlin.plugin.compose") }
 android { namespace = "ru.familycinema.app"; compileSdk = 35
- defaultConfig { minSdk = 26; applicationId = "ru.familycinema.app"; targetSdk = 35; versionCode = 1; versionName = "0.1.0"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
+ defaultConfig { minSdk = 26; applicationId = "ru.familycinema.app"; targetSdk = 35; versionCode = 2; versionName = "0.2.0"; testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner" }
  compileOptions { sourceCompatibility = JavaVersion.VERSION_21; targetCompatibility = JavaVersion.VERSION_21 }
  bundle { language { enableSplit = false } }
  buildFeatures { compose = true }; sourceSets["main"].java.srcDir(layout.buildDirectory.dir("generated/demo"))
@@ -14,6 +14,8 @@ dependencies {
  implementation("androidx.compose.material3:material3")
  implementation("androidx.compose.foundation:foundation")
  implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.7")
+ implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.7")
+ implementation("androidx.compose.material:material-icons-extended")
  
  testImplementation("junit:junit:4.13.2")
 }

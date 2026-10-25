@@ -1,0 +1,46 @@
+<resources>
+<string name="app_name">Семейный кинотеатр</string>
+
+<string name="children">Детям</string><string name="parents">Родителям</string>
+<string name="child_greeting">Сегодня — время чудес</string><string name="child_title">Твоя маленькая
+киновселенная</string>
+
+<string name="allowed">Можно смотреть</string><string name="continue_heading">Продолжим историю?</string>
+<string name="continue_play">Продолжить просмотр</string><string name="watch">Смотреть</string><string name="preview">Посмотреть перед одобрением</string>
+<string name="open_film">Открыть карточку</string><string name="empty_title">Здесь поселятся
+ваши истории</string>
+<string name="empty_body">Скоро взрослые выберут что-нибудь чудесное. А пока — помечтаем о новом приключении.</string>
+<string name="parent_title">Хороший вечер
+начинается с выбора</string><string name="parent_kicker">РОДИТЕЛЬСКАЯ</string>
+<string name="parent_subtitle">Вы выбираете истории. Мы бережём ваш выбор.</string><string name="library">Семейная медиатека</string>
+<string name="exit_parent">В детский режим</string><string name="approved">Можно ребёнку</string><string name="unapproved">Ждёт вашего решения</string>
+<string name="review_hint">Посмотрите видео лично. Возрастная отметка не заменяет вашу проверку.</string>
+<string name="approve">Разрешить ребёнку</string><string name="revoke">Отозвать разрешение</string>
+<string name="approval_title">Добавить в детский кинотеатр?</string><string name="approval_body">Вы разрешаете только эту версию видео. При изменении файла потребуется новое решение.</string>
+<string name="approve_confirm">Да, я проверил(а)</string><string name="cancel">Отмена</string>
+<string name="revoke_title">Убрать из детского каталога?</string><string name="revoke_body">Видео перестанет быть доступно ребёнку. Позиция просмотра сохранится.</string>
+<string name="version_details">О видео и разрешении</string><string name="version_label">Версия %1$s</string>
+<string name="demo_title">Тихий вечер</string><string name="demo_description">Небольшая пауза для всей семьи: мягкий свет, спокойное движение и тихий звук. Оригинальный тестовый ролик нашего кинотеатра.</string>
+<string name="demo_notice">Оригинальное тестовое видео • CC0</string><string name="demo_license">Собственная композиция проекта. Лицензия CC0 1.0. Не результат сетевого поиска.</string>
+<string name="film_meta">%1$d+ · 40 секунд · Без сети</string><string name="film_age">%1$d+</string>
+<string name="duration">40 секунд</string><string name="offline">На устройстве</string>
+<string name="pin_create">Сначала — забота</string><string name="pin_create_body">Создайте PIN из 4–8 цифр. Он откроет взрослую часть кинотеатра.</string>
+<string name="pin_login">Только для взрослых</string><string name="pin_login_body">Введите ваш родительский PIN</string>
+<string name="pin_repeat">Повторите PIN</string><string name="pin_repeat_body">Ещё один раз — чтобы всё запомнилось верно.</string>
+<string name="pin_count">Введено цифр: %1$d</string><string name="pin_delete">Стереть цифру</string><string name="pin_clear">Очистить PIN</string>
+<string name="confirm">Подтвердить</string><string name="checking">Проверяем…</string>
+<string name="pin_short">Нужно от 4 до 8 цифр</string><string name="pin_wrong">Неверный PIN. Попробуйте ещё раз.</string>
+<string name="pin_mismatch">PIN не совпали. Начните заново.</string><string name="pin_locked">Слишком много попыток. Подождите минуту.</string>
+<string name="pin_keep">Запомните PIN. Он хранится только на этом устройстве.</string>
+<string name="back">Назад</string><string name="exit_video">К фильму</string>
+<string name="video_check">Готовим вашу историю…</string><string name="video_invalid">Видео изменилось или повреждено</string>
+<string name="video_invalid_body">Не удалось подтвердить этот файл. Просмотр остановлен. Обратитесь к родителю.</string>
+<string name="video_error">Не удалось воспроизвести видео</string><string name="video_error_body">Вернитесь к карточке и попробуйте ещё раз.</string>
+
+<string name="tv_hint">Стрелки — выбор · OK — открыть · Назад — вернуться</string>
+<string name="resume_hint">Остановились на %1$s</string><string name="security_note">Разрешения хранятся на этом устройстве</string>
+<string name="art_description">Ночная поляна: луна, сосны и маленький светящийся дом</string>
+<string name="continue_short">Продолжить</string><string name="details_short">О фильме</string><string name="play">Воспроизвести</string><string name="pause">Пауза</string>
+<string name="seek_back">Назад на 10 секунд</string><string name="seek_forward">Вперёд на 10 секунд</string>
+<string name="seek_position">Позиция просмотра</string>
+</resources>
