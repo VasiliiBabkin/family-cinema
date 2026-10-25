@@ -1,0 +1,9 @@
+Actual signed 0.1.0 installed with adb install -r -d.
+Previous target process force-stopped before seed.
+Legacy seed test PASS (11.968 s).
+SharedPreferences XML read from disk after test: position_quiet-evening=12345.
+0.2.0 installed with adb install -r, without clearing data.
+UpgradeVerifyTest PASS (28.596 s): PIN, exact-version approval, position12345, child screen, parent=false.
+Legacy package verified: package: name='ru.familycinema.app' versionCode='1' versionName='0.1.0' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+Legacy SHA-256 b094ac94e2cf25bf6f188e6d75860ff7fa8764dd7ecb487c3c83950773e17d29
+Matching legacy/current Signer #1 certificate SHA-256 digest: c4dcd3f11eaf67fa4d9e7a73fff6f986318b82b7e5a445fa04b1085dd4ef08ae

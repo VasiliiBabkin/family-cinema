@@ -1,0 +1,2 @@
+Installed TV base.apk SHA-256 after full instrumentation PASS: 9f8d4e7b55908264591f18aad3b109c1d4612e6003a4f7a82a2f7bd0b8ab9080
+Matches delivered and locally built APK.

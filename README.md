@@ -2,6 +2,8 @@
 
 Нативный семейный кинотеатр Kotlin + Jetpack Compose / Media3. Русский интерфейс, два самостоятельных визуальных режима, локальные разрешения родителя и полноэкранное видео. Сетевой поиск и BitTorrent в 0.2.0 не входят.
 
+[Изменения 0.2.0](docs/RELEASE_0.2.0.md) · [Реальные скриншоты](docs/screenshots/v0.2.0/README.md) · [Результаты испытаний](QA.md)
+
 Контракт: [PROJECT_CONTRACT.md](PROJECT_CONTRACT.md), [UX 0.2](docs/DESIGN_UX_V02.md), [архитектура](docs/ARCHITECTURE.md), [QA](QA.md), [правила доставки](APK_DELIVERY.md).
 
 ## Что работает
@@ -50,7 +52,7 @@ ANDROID_HOME=/path/to/sdk python scripts/prepare-apk-delivery.py \
   --version 0.2.0 --target universal --variant debug
 ```
 
-Скрипт проверяет подпись и версию, создаёт `artifacts/delivery/family-cinema-v0.2.0-universal-debug.apk`, `SHA256SUMS.txt` и `delivery.json`. Затем APK доставляется разрешённым коннектором Google Drive; успех требует readback размера и SHA-256 либо скачивания и сравнения. Сам скрипт не выдаёт подготовку за успешную загрузку. Приватные Drive ID/ссылки и все бинарные артефакты исключены из Git. Для проверки скачанного обратно файла есть --verify-roundtrip с наблюдавшимися Drive ID/URL. Фактическая доставка описана в [APK_DELIVERY_STATUS.md](docs/APK_DELIVERY_STATUS.md), QA и ответе владельцу; публичный доступ не включается.
+Скрипт проверяет подпись и версию, создаёт `artifacts/delivery/family-cinema-v0.2.0-universal-debug.apk`, `SHA256SUMS.txt` и `delivery.json`. Затем APK доставляется разрешённым коннектором Google Drive; успех требует readback размера и SHA-256 либо скачивания и сравнения. Сам скрипт не выдаёт подготовку за успешную загрузку. Приватные Drive ID/ссылки, APK, видео и ключи исключены из Git; реальные PNG интерфейса сохранены в документации. Для проверки скачанного обратно файла есть --verify-roundtrip с наблюдавшимися Drive ID/URL. Фактическая доставка описана в [APK_DELIVERY_STATUS.md](docs/APK_DELIVERY_STATUS.md), QA и ответе владельцу; публичный доступ не включается.
 
 ## GitHub Actions
 
