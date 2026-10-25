@@ -78,13 +78,13 @@ private val Gold=Color(0xFFF5C678)
    } else BoxWithConstraints(Modifier.fillMaxSize()) {
     val wide=maxWidth>=840.dp
     val inset=if(tv) 48.dp else 24.dp
-    if(tv) Row(Modifier.fillMaxSize().padding(inset),horizontalArrangement=Arrangement.spacedBy(36.dp)) {
+    if(tv || wide) Row(Modifier.fillMaxSize().padding(inset),horizontalArrangement=Arrangement.spacedBy(36.dp)) {
      Column(Modifier.width(220.dp),verticalArrangement=Arrangement.spacedBy(18.dp)) {
       Text("СЕМЕЙНЫЙ\nКИНОТЕАТР",style=MaterialTheme.typography.titleLarge,fontWeight=FontWeight.Bold)
       Text("Вечер вместе",color=MaterialTheme.colorScheme.primary)
       Action("Детский каталог") { parent=false; screen="catalog" }
       Action(if(parent) "Выйти из режима" else "Родителям") { if(parent) { parent=false;screen="catalog" } else screen="pin" }
-      Text("Управление: стрелки, OK и Назад",style=MaterialTheme.typography.bodyMedium)
+      Text(if(tv) "Управление: стрелки, OK и Назад" else "Семейные истории под вашим контролем",style=MaterialTheme.typography.bodyMedium)
      }
      Column(Modifier.weight(1f).verticalScroll(rememberScrollState()),verticalArrangement=Arrangement.spacedBy(20.dp)) {
       Content(screen,parent,approved,film,store,wide,{screen=it},{if(sessionOwner.lifecycle.currentState.isAtLeast(Lifecycle.State.STARTED)) {parent=true;screen="parent"}},{revision++})
