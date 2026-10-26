@@ -1,0 +1,1 @@
+<resources><style name="CinemaAppTheme" parent="android:style/Theme.Material.NoActionBar"><item name="android:statusBarColor">@android:color/transparent</item><item name="android:navigationBarColor">@android:color/transparent</item><item name="android:colorAccent">#F4CF8E</item><item name="android:windowActionModeOverlay">true</item></style></resources>

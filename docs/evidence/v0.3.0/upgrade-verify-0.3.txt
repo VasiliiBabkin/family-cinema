@@ -1,0 +1,6 @@
+
+ru.familycinema.app.UpgradeVerifyTest:.
+
+Time: 33.89
+
+OK (1 test)

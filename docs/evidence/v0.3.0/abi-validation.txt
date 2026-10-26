@@ -1,0 +1,1 @@
+ARM64 APK: native libraries only arm64-v8a. Universal/ARM64 DEX byte-for-byte identical. Runtime tests on x86/x86_64 emulators, not ARM64.

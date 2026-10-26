@@ -1,0 +1,10 @@
+Family Cinema 0.3.0
+Source commit: a118c2b7edcff0ced8075560f2d7ad2c5bda2b1e
+Built from identical application/source working tree before commit; documentation updated afterwards.
+JDK 21.0.8; Gradle 8.10.2; AGP 8.7.3; compile/target SDK 35; build tools 34.0.0; min SDK 26.
+Cloud: 2 CPU, 8 GiB, Linux x86_64, no /dev/kvm. Emulator TCG/SwiftShader.
+Build: ./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug :sources:test :domain:test :parental:testDebugUnitTest
+ARM64: ./gradlew -Parm64Only :app:assembleDebug
+No GitHub Actions. APKs signed with same debug certificate as delivered 0.2.0.
+
+Final phone/tablet workflows use these frozen APK bytes. Main TV player/policy tests precede only the final TV card geometry correction; geometry, title/resume visibility and remote selection tested on final bytes.

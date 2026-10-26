@@ -1,0 +1,6 @@
+Application/test code checkpoint: 797e78a2adae8223b72d49e31eb1f3ed2357208f
+APK SHA-256: 9f8d4e7b55908264591f18aad3b109c1d4612e6003a4f7a82a2f7bd0b8ab9080
+Size: 20169357 bytes
+Subsequent changes are documentation/evidence only.
+Build and test APK were assembled together; the APK was not rebuilt during device verification.
+Android test APK SHA-256: cda295f550f537088620e31066c74a4d469369f7eae339d8b2203e83e2259db4

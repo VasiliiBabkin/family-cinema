@@ -1,0 +1,6 @@
+
+ru.familycinema.app.UpgradeSeedTest:.
+
+Time: 24.331
+
+OK (1 test)

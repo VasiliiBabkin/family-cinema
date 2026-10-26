@@ -1,0 +1,10 @@
+package: name='ru.familycinema.app' versionCode='2' versionName='0.2.0' platformBuildVersionName='15' platformBuildVersionCode='35' compileSdkVersion='35' compileSdkVersionCodename='15'
+sdkVersion:'26'
+targetSdkVersion:'35'
+uses-permission: name='android.permission.ACCESS_NETWORK_STATE'
+uses-permission: name='ru.familycinema.app.DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION'
+launchable-activity: name='ru.familycinema.app.MainActivity'  label='' icon=''
+leanback-launchable-activity: name='ru.familycinema.app.MainActivity'  label='' icon='' banner=''
+native-code: 'arm64-v8a' 'armeabi-v7a' 'x86' 'x86_64'
+
+Legacy/current demo asset SHA-256 identical: 8bac7b321a48c45a6ba7bd67a2df2745f68d97430dc0ea0134a55c7c7235051a

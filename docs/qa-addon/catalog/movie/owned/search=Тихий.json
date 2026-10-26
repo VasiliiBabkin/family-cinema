@@ -1,0 +1,19 @@
+{
+  "metas": [
+    {
+      "id": "quiet-evening",
+      "type": "movie",
+      "name": "Тихий вечер — собственный CC0-ролик",
+      "originalName": "Quiet Evening",
+      "alternativeNames": [
+        "Tikhiy vecher"
+      ],
+      "ageRating": "0",
+      "description": "Собственный технический ролик Family Cinema. Проверочный источник протокола, не каталог полнометражных фильмов.",
+      "releaseInfo": "2026",
+      "genres": [
+        "Тестовое видео"
+      ]
+    }
+  ]
+}

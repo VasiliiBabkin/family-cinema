@@ -1,43 +1,65 @@
-# Family Cinema
+# Family Cinema 0.3.0 — Android-first
 
-Семейный кинотеатр на Kotlin + Jetpack Compose / Media3. Русский интерфейс, локальный одобренный каталог, родительский PIN. Реализация **этапа 1**; статус проверок и ограничения — в [QA.md](QA.md). Контракт: [PROJECT_CONTRACT.md](PROJECT_CONTRACT.md), задание: [CODEX_TASK.md](CODEX_TASK.md).
+Нативная семейная медиатека Kotlin / Jetpack Compose / Room / Media3. Основной сценарий работает на Android без домашнего сервера: личное видео, локальный поиск, точные родительские разрешения и продолжение просмотра. Для внешних каталогов реализован Kotlin-клиент открытого Stremio Addon Protocol; поставщики и контент не предустановлены.
 
-## Сборка
+[Испытания и ограничения](QA.md) · [Инструкция родителю](docs/PARENT_GUIDE_V03.md) · [Архитектура](docs/ARCHITECTURE.md) · [Библиотеки и лицензии](docs/DEPENDENCIES_V03.md) · [Скриншоты](docs/screenshots/v0.3.0/README.md)
 
-Нужны полный JDK 21 (с javac), Android SDK 35 / build-tools 34.0.0, FFmpeg с libx264 и шрифт `/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf` (Debian/Ubuntu: `ffmpeg fonts-dejavu-core`). Укажите SDK в `local.properties` (`sdk.dir=...`) либо `ANDROID_HOME`.
+## Возможности
+
+- Локальная Room-библиотека: фильмы, сериалы/сезоны/эпизоды, метаданные, избранное, история, прогресс, источники и журнал решений.
+- Системный выбор личных файлов, приватные проверенные копии с SHA-256, лимит места и отмена загрузки; поиск учитывает ё/е, альтернативные названия и транслитерацию.
+- PIN и блокировка попыток из 0.2 сохранены. Родительская сессия закрывается в фоне; ребёнку доступны только разрешённые версии подходящего возраста.
+- Автоодобрение по умолчанию OFF: подтверждение родителя, доверенные источники, известный возраст, проверенные байты; ручные запреты не перезаписываются. Удалённое автоодобрение требует ожидаемого SHA-256 от источника.
+- Media3 progressive/HLS/DASH, fullscreen, landscape телефона, touch/D-pad/OK/Back, сохранение позиции. Детское воспроизведение — из неизменяемых приватных копий; HLS/DASH пока только родительский preview.
+- Совместимые HTTPS addons: manifest/catalog/search/meta/streams/subtitles protocol. Stream-only источники могут дополнять каталог по стабильным внешним ID. Встроенного каталога коммерческих фильмов, TMDB/Jellyfin и торрент-воспроизведения нет.
+
+Точная граница проверенного указана в QA. Собственный CC0-ролик — тестовый материал, а не замена настоящей пользовательской медиатеке. История 0.2: [отчёт](docs/qa/v0.2.0.md), [изменения](docs/RELEASE_0.2.0.md).
+
+## Сборка в Codex Cloud / локально
+
+Полный JDK 21, Android SDK 35 / build-tools 34.0.0, FFmpeg с libx264, шрифт DejaVu Sans. SDK задаётся через `ANDROID_HOME` либо исключённый из Git `local.properties`.
 
 ```sh
-./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :domain:test :parental:testDebugUnitTest :app:lintDebug
+./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug
+./gradlew :domain:test :sources:test :parental:testDebugUnitTest
 ```
 
-При первом запуске сборки генерируется собственное CC0-видео. Тяжёлые файлы, APK и keystore исключены из Git. APK: `app/build/outputs/apk/debug/app-debug.apk`. Это тестовая сборка с автоматически созданной локальной debug-подписью; для публикации требуется отдельная release-подпись. TV и mobile используют один APK с разными оболочками.
+Собственное CC0-видео генерируется перед первой сборкой; его SHA-256 встраивается в код и проверяется перед воспроизведением. Генератор: `scripts/generate-demo.sh`, лицензии: [TEST_MEDIA.md](docs/TEST_MEDIA.md). Оригинальные графические ресурсы не заимствованы у фильмов или сайтов.
 
-За прокси Gradle могут понадобиться `-Dhttps.proxyHost=... -Dhttps.proxyPort=...` и настроенное доверие к CA среды; проверку TLS отключать нельзя. Значения прокси и доверенного хранилища не зашиты в проект.
+APK: `app/build/outputs/apk/debug/app-debug.apk`. По умолчанию universal target для mobile/tablet/TV, minSdk 26, targetSdk 35, версия 0.3.0 / versionCode 3. ARM64-сборка: `./gradlew -Parm64Only :app:assembleDebug`. Debug-подпись создаётся локально и не коммитится. Production signing и проверка физических устройств — отдельная работа.
 
-## Первый запуск
+Для proxy в Gradle используйте настройки конкретной среды и её доверенный CA; не отключайте TLS и не коммитьте proxy credentials.
 
-1. Родитель создаёт PIN (4–8 цифр) и повторяет его.
-2. Открывает карточку «Тихий вечер», просматривает тестовое видео и одобряет эту версию.
-3. Нажимает «Выйти»: в детском каталоге появляется одобренная карточка.
-4. Запускает просмотр; при выходе позиция сохраняется. «Продолжить просмотр» возобновляет ролик.
-5. В режиме родителя можно отозвать одобрение. При изменении версии прежнее одобрение не действует.
-
-PIN не предустановлен. Восстановление PIN пока не реализовано. Очистка данных удаляет PIN, одобрения и позиции. Детский интерфейс не открывает внешние сайты или поиск.
-
-## Проверки Android
+## Android-проверки
 
 ```sh
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb shell pm clear ru.familycinema.app
-adb shell am instrument -w ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w -e layout phone \
+  -e class ru.familycinema.app.FlowV03Test \
+  ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w -e layout phone \
+  -e class ru.familycinema.app.FamilyFlowTest \
+  ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
 ```
 
-Инструментальный тест требует чистых данных приложения и мобильной оболочки. Он проверяет PIN, одобрение, реальное движение позиции Media3, продолжение, ошибочный PIN и отзыв одобрения. TV D-pad, физические устройства, доступность TalkBack и реальные кодеки проверяются отдельно.
+Тесты **очищают данные тестируемого приложения** перед каждым методом: выполняйте их на отдельном эмуляторе. `layout` задаёт префикс screenshots и проверку ожидаемого типа/размера устройства; он не подменяет его конфигурацию. Для планшета/TV нужны соответствующие реальные настройки эмулятора/образа. Можно выбрать основной сценарий через `-e class ru.familycinema.app.FamilyFlowTest#nativeFamilyFlowFullscreenRotationAndResume`.
 
-## GitHub Actions и лимиты
+Runner проверяет декодирование, FIT и размер PlayerView, touch и OK, скрытие/возврат контролов, два Back, смену ориентации и пересоздание Activity без смены плеера, позицию, фон, неверный PIN, одобрение/отзыв и блокировку после пяти попыток. Реальные PNG сохраняются в filesDir приложения. Фактические результаты, включая неудачные итерации, см. в QA.
 
-Workflow запускается только вручную (`workflow_dispatch`), обычные коммиты и PR не запускают сборку. Ограничение — 15 минут на job, один прогон одновременно; предыдущий отменяется. Артефакты будущих прогонов хранятся 7 дней. Основные проверки выполняются локально в облачной среде. Перед новыми ручными прогонами проверяйте актуальные лимиты аккаунта: репозиторийный timing API и общий billing API дают разные сведения.
+## Доставка APK
+
+```sh
+ANDROID_HOME=/path/to/sdk python scripts/prepare-apk-delivery.py \
+  --apk app/build/outputs/apk/debug/app-debug.apk \
+  --version 0.3.0 --target universal --variant debug
+```
+
+Скрипт проверяет подпись и версию, создаёт `artifacts/delivery/family-cinema-v0.3.0-universal-debug.apk`, `SHA256SUMS.txt` и `delivery.json`. Затем APK доставляется разрешённым коннектором Google Drive; успех требует readback размера и SHA-256 либо скачивания и сравнения. Сам скрипт не выдаёт подготовку за успешную загрузку. Приватные Drive ID/ссылки, APK, видео и ключи исключены из Git; реальные PNG интерфейса сохранены в документации. Для проверки скачанного обратно файла есть --verify-roundtrip с наблюдавшимися Drive ID/URL. Фактическая доставка описана в [APK_DELIVERY_STATUS.md](docs/APK_DELIVERY_STATUS.md), QA и ответе владельцу; публичный доступ не включается.
+
+## GitHub Actions
+
+Только ручной `workflow_dispatch`, не push/PR. 15 минут на job, один прогон одновременно, будущие артефакты 7 дней. Сборка и проверки не требуют Actions. Перед новыми ручными прогонами нужно проверять доступные лимиты аккаунта.
 
 ## Backend
 
@@ -49,6 +71,4 @@ cd backend
 ../.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-`GET /health` сообщает, что PostgreSQL не подключён. `GET /catalog` возвращает пустой типизированный список. Это серверный каркас, APK пока его не использует. Безопасный пример будущих переменных — `backend/.env.example`.
-
-[Архитектура и границы модулей](docs/ARCHITECTURE.md), [происхождение тестового материала](docs/TEST_MEDIA.md). Torznab, magnet/.torrent, P2P, gateway, серверная синхронизация и ограничения времени ещё не реализованы. Их интерфейсы не являются рабочими интеграциями.
+FastAPI остаётся вспомогательным экспериментом с SQLite/catalog/search/parental API и отдельными тестами. APK не обращается к нему. Android использует INTERNET permission для явно подключённых HTTPS-источников; личная библиотека и PIN работают без сети. PostgreSQL/домашний сервер не требуются. Интерфейсы Torznab/torrent сохранены для будущих модулей, движок в APK не встроен.

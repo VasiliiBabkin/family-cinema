@@ -1,0 +1,35 @@
+> Task :domain:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :domain:processResources NO-SOURCE
+> Task :domain:processTestResources NO-SOURCE
+> Task :parental:checkKotlinGradlePluginConfigurationErrors SKIPPED
+> Task :parental:preBuild UP-TO-DATE
+> Task :parental:preDebugBuild UP-TO-DATE
+> Task :parental:generateDebugResValues
+> Task :parental:generateDebugResources
+> Task :parental:packageDebugResources
+> Task :parental:parseDebugLocalResources
+> Task :parental:generateDebugRFile
+> Task :parental:javaPreCompileDebug
+> Task :parental:preDebugUnitTestBuild UP-TO-DATE
+> Task :parental:generateDebugUnitTestStubRFile
+> Task :parental:javaPreCompileDebugUnitTest
+> Task :domain:compileKotlin
+> Task :domain:compileJava NO-SOURCE
+> Task :domain:classes UP-TO-DATE
+> Task :domain:jar
+> Task :domain:compileTestKotlin
+> Task :domain:compileTestJava NO-SOURCE
+> Task :domain:testClasses UP-TO-DATE
+> Task :parental:compileDebugKotlin
+> Task :domain:test
+> Task :parental:compileDebugJavaWithJavac NO-SOURCE
+> Task :parental:bundleLibRuntimeToJarDebug
+> Task :parental:bundleLibCompileToJarDebug
+> Task :parental:processDebugJavaRes
+> Task :parental:compileDebugUnitTestKotlin
+> Task :parental:compileDebugUnitTestJavaWithJavac NO-SOURCE
+> Task :parental:processDebugUnitTestJavaRes
+> Task :parental:testDebugUnitTest
+
+BUILD SUCCESSFUL in 14s
+19 actionable tasks: 19 executed

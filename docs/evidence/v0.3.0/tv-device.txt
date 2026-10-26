@@ -1,0 +1,13 @@
+Android TV genuine system image; no physical device
+google/sdk_google_atv_x86/generic_x86:11/RTU1.221129.002/9351025:user/dev-keys
+x86
+Physical size: 1920x1080
+Physical density: 320
+Current UI Mode Service state:
+  mDockState=0 mLastBroadcastState=0
+  mNightMode=1 (no)  mOverrideOn/Off=false/false mNightModeLocked=true
+  mCarModeEnabled=false (carModeApps=
+ waitScreenOff=false mComputedNightMode=false customStart=22:00 customEnd06:00 mCarModeEnableFlags=0 mEnableCarDockLaunch=true
+  mCurUiMode=0x14 mUiModeLocked=true mSetUiMode=0x14
+  mHoldingConfiguration=false mSystemReady=true
+  mTwilightService.getLastTwilightState()=null

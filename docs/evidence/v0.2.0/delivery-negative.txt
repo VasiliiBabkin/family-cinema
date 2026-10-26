@@ -1,0 +1,17 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+usage: prepare-apk-delivery.py [-h] --apk APK [--version VERSION]
+                               [--target {universal,mobile,tv}]
+                               [--variant {debug,release}] [--output OUTPUT]
+                               [--build-tools BUILD_TOOLS]
+                               [--verify-roundtrip VERIFY_ROUNDTRIP]
+                               [--drive-file-id DRIVE_FILE_ID]
+                               [--drive-folder-id DRIVE_FOLDER_ID]
+                               [--drive-url DRIVE_URL]
+prepare-apk-delivery.py: error: Размер или SHA-256 скачанного APK не совпадает с оригиналом

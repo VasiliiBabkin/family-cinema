@@ -1,0 +1,27 @@
+{
+  "id": "family.cinema.qa",
+  "version": "1.0.0",
+  "name": "Family Cinema · открытый проверочный источник",
+  "description": "Только собственный ролик CC0; для проверки подключения и импорта HTTPS.",
+  "types": [
+    "movie"
+  ],
+  "resources": [
+    "catalog",
+    "meta",
+    "stream"
+  ],
+  "catalogs": [
+    {
+      "type": "movie",
+      "id": "owned",
+      "name": "Собственные видео",
+      "extra": [
+        {
+          "name": "search",
+          "isRequired": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,13 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ru.familycinema.sources.PolicySecurityTest" tests="7" skipped="0" failures="0" errors="0" timestamp="2026-10-26T05:44:50" hostname="88f5475bd05f" time="0.013">
+  <properties/>
+  <testcase name="automaticRequiresEveryCondition" classname="ru.familycinema.sources.PolicySecurityTest" time="0.002"/>
+  <testcase name="russianAndAliases" classname="ru.familycinema.sources.PolicySecurityTest" time="0.003"/>
+  <testcase name="realProtocolShapeAndEncodedQuery" classname="ru.familycinema.sources.PolicySecurityTest" time="0.002"/>
+  <testcase name="excessiveJsonAndPrivateDnsBecomeControlledFailures" classname="ru.familycinema.sources.PolicySecurityTest" time="0.002"/>
+  <testcase name="unsafeUrlsFailClosed" classname="ru.familycinema.sources.PolicySecurityTest" time="0.003"/>
+  <testcase name="streamOnlyAddonDoesNotRequireCatalog" classname="ru.familycinema.sources.PolicySecurityTest" time="0.001"/>
+  <testcase name="privateAndMixedResolutionCannotConnect" classname="ru.familycinema.sources.PolicySecurityTest" time="0.0"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>
