@@ -18,9 +18,9 @@ import ru.familycinema.app.R
 import ru.familycinema.app.ui.*
 
 @Composable
-fun LibraryUi(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
+fun LibraryUi(model: CinemaViewModel, wide: Boolean, tv: Boolean, screen: Screen) {
     val c = model.library
-    if (!model.parent && model.screen in listOf(Screen.SOURCES, Screen.POLICY)) return
+    if (!model.parent && screen in listOf(Screen.SOURCES, Screen.POLICY)) return
     Column(Modifier.fillMaxSize()) {
         if (c.busy) {
             val transfer by c.repo.transfer.collectAsStateWithLifecycle()
@@ -63,7 +63,7 @@ fun LibraryUi(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
                 CircularProgressIndicator()
             }
         else
-            when (model.screen) {
+            when (screen) {
                 Screen.SOURCES -> SourcesPage(model, tv)
                 Screen.POLICY -> PolicyPage(model, tv)
                 Screen.WORK -> WorkPage(model, wide, tv)

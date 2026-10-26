@@ -63,13 +63,12 @@ internal fun SourcesPage(model: CinemaViewModel, tv: Boolean) {
             Text(s(R.string.add_addon), style = MaterialTheme.typography.titleLarge)
         }
         item {
-            OutlinedTextField(
+            SourceUrlField(
                 endpoint,
-                { endpoint = it.take(8192) },
-                Modifier.fillMaxWidth().testTag("source_endpoint").cinemaFocus(),
-                label = { Text(s(R.string.manifest_url)) },
-                visualTransformation = PasswordVisualTransformation(),
-                singleLine = true,
+                { endpoint = it },
+                s(R.string.manifest_url),
+                tv,
+                Modifier.fillMaxWidth().testTag("source_endpoint"),
             )
         }
         item {
@@ -165,13 +164,7 @@ internal fun SourcesPage(model: CinemaViewModel, tv: Boolean) {
                         modifier = Modifier.testTag("import_age").cinemaFocus(),
                     )
                     if (directDialog)
-                        OutlinedTextField(
-                            direct,
-                            { direct = it.take(8192) },
-                            label = { Text(s(R.string.https_video)) },
-                            visualTransformation = PasswordVisualTransformation(),
-                            modifier = Modifier.cinemaFocus(),
-                        )
+                        SourceUrlField(direct, { direct = it }, s(R.string.https_video), tv)
                     else {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Checkbox(series, { series = it }, modifier = Modifier.cinemaFocus())

@@ -52,7 +52,7 @@ fun FilmPoster(modifier: Modifier = Modifier, title: Boolean = true) {
 @Composable
 fun ChildCatalog(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
     if (model.library.works.any { it.id != "demo" }) {
-        ru.familycinema.app.library.LibraryUi(model, wide, tv)
+        ru.familycinema.app.library.LibraryUi(model, wide, tv, Screen.CHILD)
         return
     }
     if (tv) {
@@ -188,6 +188,7 @@ fun ParentCatalog(model: CinemaViewModel, tv: Boolean) {
             model,
             tv || androidx.compose.ui.platform.LocalConfiguration.current.screenWidthDp >= 600,
             tv,
+            Screen.PARENT,
         )
         return
     }

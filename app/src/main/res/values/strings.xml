@@ -149,4 +149,5 @@
     <string name="local_source">Личные файлы</string>
     <string name="local_source_capabilities">Проверенные приватные копии с устройства. Доверие выключено, пока его не подтвердит родитель.</string>
     <string name="personal_video_version">Личный видеофайл</string>
+    <string name="native_url_hint">https://…</string>
 </resources>

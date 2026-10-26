@@ -20,6 +20,10 @@ class FlowV03Test {
     private val clean =
         object : ExternalResource() {
             override fun before() {
+                androidx.test.espresso.IdlingPolicies.setIdlingResourceTimeout(
+                    60,
+                    java.util.concurrent.TimeUnit.SECONDS,
+                )
                 val ctx = InstrumentationRegistry.getInstrumentation().targetContext
                 ctx.getSharedPreferences("family_private", 0).edit().clear().commit()
                 runBlocking(Dispatchers.IO) { CinemaDatabase.get(ctx).clearAllTables() }
@@ -43,6 +47,26 @@ class FlowV03Test {
         } catch (_: AssertionError) {}
         node.performClick()
         ui.waitForIdle()
+    }
+
+    private fun sourceUrl(url: String) {
+        ui.onNodeWithTag("source_endpoint").performScrollTo()
+        if (layout == "tv") {
+            androidx.test.espresso.Espresso.onView(
+                    androidx.test.espresso.matcher.ViewMatchers.withTagValue(
+                        org.hamcrest.CoreMatchers.equalTo<Any>("source_endpoint_native")
+                    )
+                )
+                .perform(
+                    androidx.test.espresso.action.ViewActions.click(),
+                    androidx.test.espresso.action.ViewActions.replaceText(url),
+                    androidx.test.espresso.action.ViewActions.pressImeActionButton(),
+                )
+            ui.waitForIdle()
+        } else {
+            ui.onNodeWithTag("source_endpoint").performTextInput(url)
+            ui.onNodeWithTag("source_endpoint").performImeAction()
+        }
     }
 
     private fun pin(s: String) {
@@ -236,7 +260,7 @@ class FlowV03Test {
         ui.runOnUiThread { ui.activity.cinema.openLibrary(Screen.SOURCES) }
         screen(Screen.SOURCES)
         idle()
-        ui.onNodeWithTag("source_endpoint").performTextInput("https://127.0.0.1/manifest.json")
+        sourceUrl("https://127.0.0.1/manifest.json")
         click("source_rights")
         click("source_connect")
         idle()
@@ -300,6 +324,28 @@ class FlowV03Test {
         assertEquals(1, runBlocking { repo.visible(false).size })
 
         assertFalse(runBlocking { repo.visible(false).any { it.id == imported.id } })
+    }
+
+    @Test
+    fun sourceInputRemainsStableAcrossScreenTransitions() {
+        screen(Screen.PIN)
+        pin("1234")
+        pin("1234")
+        screen(Screen.PARENT)
+        repeat(2) {
+            ui.runOnUiThread { ui.activity.cinema.openLibrary(Screen.POLICY) }
+            screen(Screen.POLICY)
+            idle()
+            ui.runOnUiThread { ui.activity.cinema.openLibrary(Screen.SOURCES) }
+            screen(Screen.SOURCES)
+            idle()
+            sourceUrl("https://127.0.0.1/manifest.json")
+            click("source_rights")
+            click("source_connect")
+            idle()
+            ui.runOnUiThread { assertTrue(ui.activity.cinema.library.message.isNotBlank()) }
+        }
+        capture("source-input")
     }
 
     @Test

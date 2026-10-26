@@ -120,13 +120,13 @@ fun CinemaApp(model: CinemaViewModel) {
                             ),
                     )
                 },
-                contentWindowInsets = WindowInsets.safeDrawing,
+                contentWindowInsets = if (tv) WindowInsets.systemBars else WindowInsets.safeDrawing,
             ) { padding ->
                 Row(
                     Modifier.fillMaxSize()
                         .padding(padding)
                         .consumeWindowInsets(padding)
-                        .imePadding()
+                        .then(if (tv) Modifier else Modifier.imePadding())
                 ) {
                     if (wide && model.screen != Screen.PIN && !tv)
                         NavigationRail(containerColor = MaterialTheme.colorScheme.background) {
@@ -168,7 +168,8 @@ fun CinemaApp(model: CinemaViewModel) {
                             Screen.LIBRARY,
                             Screen.SOURCES,
                             Screen.POLICY,
-                            Screen.WORK -> ru.familycinema.app.library.LibraryUi(model, wide, tv)
+                            Screen.WORK ->
+                                ru.familycinema.app.library.LibraryUi(model, wide, tv, screen)
                             Screen.PLAYER -> Unit
                         }
                     }
