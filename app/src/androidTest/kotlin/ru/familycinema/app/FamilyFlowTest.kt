@@ -6,6 +6,7 @@ import android.graphics.Bitmap
 import android.view.KeyEvent
 import android.view.View
 import android.view.ViewGroup
+import androidx.compose.ui.semantics.SemanticsActions
 import androidx.compose.ui.test.*
 import androidx.compose.ui.test.junit4.createAndroidComposeRule
 import androidx.media3.ui.PlayerView
@@ -124,6 +125,8 @@ class FamilyFlowTest {
                 Configuration.UI_MODE_TYPE_TELEVISION
         if (device == "tv") {
             assertTrue("TV screenshot требует настоящего TV-образа", actualTv)
+            key(KeyEvent.KEYCODE_DPAD_DOWN)
+            tag("pin_1").performSemanticsAction(SemanticsActions.RequestFocus)
             key(KeyEvent.KEYCODE_DPAD_RIGHT)
             key(KeyEvent.KEYCODE_DPAD_CENTER)
             ui.runOnUiThread { assertEquals("2", ui.activity.cinema.pin) }

@@ -119,51 +119,61 @@ internal fun CatalogPage(model: CinemaViewModel, wide: Boolean, tv: Boolean) {
                     )
                 )
             }
-        LazyVerticalGrid(
-            columns = GridCells.Fixed(if (tv) 3 else if (wide) 3 else 2),
-            horizontalArrangement = Arrangement.spacedBy(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp),
-            contentPadding = PaddingValues(bottom = 24.dp),
-            modifier = Modifier.weight(1f),
-        ) {
-            items(list, key = { it.id }) { w ->
-                Card(
-                    onClick = { model.openWork(w) },
-                    modifier =
-                        Modifier.fillMaxWidth()
-                            .testTag("work_${w.id}")
-                            .initialFocus(tv && c.query.isBlank() && list.firstOrNull()?.id == w.id)
-                            .cinemaFocus(),
-                    shape = CinemaTokens.Corners,
-                ) {
-                    Cover(
-                        w,
-                        Modifier.fillMaxWidth()
-                            .height(if (tv) 170.dp else if (wide) 160.dp else 130.dp),
-                        model.parent,
-                    )
-                    Column(
-                        Modifier.padding(14.dp),
-                        verticalArrangement = Arrangement.spacedBy(6.dp),
+        BoxWithConstraints(Modifier.weight(1f)) {
+            val tvCardHeight = (maxHeight - 24.dp).coerceAtLeast(0.dp)
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(if (tv) 3 else if (wide) 3 else 2),
+                horizontalArrangement = Arrangement.spacedBy(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp),
+                contentPadding = PaddingValues(bottom = 24.dp),
+                modifier = Modifier.fillMaxSize(),
+            ) {
+                items(list, key = { it.id }) { w ->
+                    Card(
+                        onClick = { model.openWork(w) },
+                        modifier =
+                            Modifier.fillMaxWidth()
+                                .then(if (tv) Modifier.height(tvCardHeight) else Modifier)
+                                .testTag("work_${w.id}")
+                                .initialFocus(
+                                    tv && c.query.isBlank() && list.firstOrNull()?.id == w.id
+                                )
+                                .cinemaFocus(),
+                        shape = CinemaTokens.Corners,
                     ) {
-                        Text(
-                            w.title,
-                            maxLines = 2,
-                            overflow = TextOverflow.Ellipsis,
-                            style = MaterialTheme.typography.titleMedium,
+                        Cover(
+                            w,
+                            Modifier.fillMaxWidth()
+                                .then(
+                                    if (tv) Modifier.weight(1f)
+                                    else Modifier.height(if (wide) 160.dp else 130.dp)
+                                ),
+                            model.parent,
                         )
-                        Text(
-                            listOfNotNull(w.year?.toString(), w.age?.let { "$it+" })
-                                .joinToString(" · "),
-                            style = MaterialTheme.typography.labelMedium,
-                        )
-                        val pos = w.id in c.inProgressWorkIds
-                        if (pos)
+                        Column(
+                            Modifier.padding(14.dp),
+                            verticalArrangement = Arrangement.spacedBy(6.dp),
+                        ) {
                             Text(
-                                s(R.string.continue_play),
-                                color = MaterialTheme.colorScheme.primary,
+                                w.title,
+                                maxLines = 2,
+                                minLines = if (tv) 2 else 1,
+                                overflow = TextOverflow.Ellipsis,
+                                style = MaterialTheme.typography.titleMedium,
+                            )
+                            Text(
+                                listOfNotNull(w.year?.toString(), w.age?.let { "$it+" })
+                                    .joinToString(" · "),
                                 style = MaterialTheme.typography.labelMedium,
                             )
+                            val pos = w.id in c.inProgressWorkIds
+                            if (pos)
+                                Text(
+                                    s(R.string.continue_play),
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.labelMedium,
+                                )
+                        }
                     }
                 }
             }

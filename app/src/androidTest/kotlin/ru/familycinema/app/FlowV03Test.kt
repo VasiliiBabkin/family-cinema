@@ -139,6 +139,10 @@ class FlowV03Test {
                 Configuration.UI_MODE_TYPE_TELEVISION,
                 ui.activity.resources.configuration.uiMode and Configuration.UI_MODE_TYPE_MASK,
             )
+            // A previous touch-driven test can leave Android TV in touch mode.
+            // Enter remote navigation, then verify movement from a known focused key.
+            key(KeyEvent.KEYCODE_DPAD_DOWN)
+            ui.onNodeWithTag("pin_1").performSemanticsAction(SemanticsActions.RequestFocus)
             key(KeyEvent.KEYCODE_DPAD_RIGHT)
             key(KeyEvent.KEYCODE_DPAD_CENTER)
             ui.runOnUiThread { assertEquals("2", ui.activity.cinema.pin) }
