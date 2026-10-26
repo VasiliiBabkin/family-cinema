@@ -98,6 +98,11 @@ class FlowV03Test {
     }
 
     private fun key(code: Int) {
+        ui.waitUntil(30000) {
+            var focused = false
+            ui.runOnUiThread { focused = ui.activity.hasWindowFocus() }
+            focused
+        }
         InstrumentationRegistry.getInstrumentation().sendKeyDownUpSync(code)
         ui.waitForIdle()
     }

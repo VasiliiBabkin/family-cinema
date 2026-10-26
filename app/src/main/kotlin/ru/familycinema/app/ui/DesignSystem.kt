@@ -12,6 +12,7 @@ import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.layout.onGloballyPositioned
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -146,15 +147,13 @@ fun motionDuration() = if (ValueAnimator.areAnimatorsEnabled()) CinemaTokens.Tra
 @Composable
 fun Modifier.initialFocus(enabled: Boolean): Modifier {
     val requester = remember { androidx.compose.ui.focus.FocusRequester() }
-    LaunchedEffect(enabled) {
-        if (enabled) {
-            withFrameNanos {}
+    var requested by remember(enabled) { mutableStateOf(false) }
+    // A lazy item may be detached before a delayed frame callback runs. Request only
+    // from placement, while the actual focus target is attached to this layout.
+    return this.focusRequester(requester).onGloballyPositioned {
+        if (enabled && !requested) {
+            requested = true
             requester.requestFocus()
         }
     }
-    return this.then(Modifier.focusRequesterCompat(requester))
 }
-
-private fun Modifier.focusRequesterCompat(
-    requester: androidx.compose.ui.focus.FocusRequester
-): Modifier = this.then(Modifier.focusRequester(requester))
