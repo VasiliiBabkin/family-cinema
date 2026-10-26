@@ -1,0 +1,6 @@
+
+ru.familycinema.app.V03DataTest:..
+
+Time: 7.571
+
+OK (2 tests)

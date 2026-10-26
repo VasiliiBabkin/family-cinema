@@ -36,6 +36,9 @@ APK: `app/build/outputs/apk/debug/app-debug.apk`. По умолчанию univer
 adb install -r app/build/outputs/apk/debug/app-debug.apk
 adb install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
 adb shell am instrument -w -e layout phone \
+  -e class ru.familycinema.app.FlowV03Test \
+  ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
+adb shell am instrument -w -e layout phone \
   -e class ru.familycinema.app.FamilyFlowTest \
   ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
 ```
@@ -49,10 +52,10 @@ Runner проверяет декодирование, FIT и размер Player
 ```sh
 ANDROID_HOME=/path/to/sdk python scripts/prepare-apk-delivery.py \
   --apk app/build/outputs/apk/debug/app-debug.apk \
-  --version 0.2.0 --target universal --variant debug
+  --version 0.3.0 --target universal --variant debug
 ```
 
-Скрипт проверяет подпись и версию, создаёт `artifacts/delivery/family-cinema-v0.2.0-universal-debug.apk`, `SHA256SUMS.txt` и `delivery.json`. Затем APK доставляется разрешённым коннектором Google Drive; успех требует readback размера и SHA-256 либо скачивания и сравнения. Сам скрипт не выдаёт подготовку за успешную загрузку. Приватные Drive ID/ссылки, APK, видео и ключи исключены из Git; реальные PNG интерфейса сохранены в документации. Для проверки скачанного обратно файла есть --verify-roundtrip с наблюдавшимися Drive ID/URL. Фактическая доставка описана в [APK_DELIVERY_STATUS.md](docs/APK_DELIVERY_STATUS.md), QA и ответе владельцу; публичный доступ не включается.
+Скрипт проверяет подпись и версию, создаёт `artifacts/delivery/family-cinema-v0.3.0-universal-debug.apk`, `SHA256SUMS.txt` и `delivery.json`. Затем APK доставляется разрешённым коннектором Google Drive; успех требует readback размера и SHA-256 либо скачивания и сравнения. Сам скрипт не выдаёт подготовку за успешную загрузку. Приватные Drive ID/ссылки, APK, видео и ключи исключены из Git; реальные PNG интерфейса сохранены в документации. Для проверки скачанного обратно файла есть --verify-roundtrip с наблюдавшимися Drive ID/URL. Фактическая доставка описана в [APK_DELIVERY_STATUS.md](docs/APK_DELIVERY_STATUS.md), QA и ответе владельцу; публичный доступ не включается.
 
 ## GitHub Actions
 
@@ -68,4 +71,4 @@ cd backend
 ../.venv/bin/uvicorn app.main:app --host 127.0.0.1 --port 8000
 ```
 
-FastAPI — каркас: `/health` сообщает `database: not_configured`, `/catalog` возвращает пустой типизированный список. PostgreSQL, серверная авторизация и синхронизация отсутствуют. APK не использует сервер и не имеет INTERNET permission. Интерфейсы Torznab/torrent сохранены, но не реализованы.
+FastAPI остаётся вспомогательным экспериментом с SQLite/catalog/search/parental API и отдельными тестами. APK не обращается к нему. Android использует INTERNET permission для явно подключённых HTTPS-источников; личная библиотека и PIN работают без сети. PostgreSQL/домашний сервер не требуются. Интерфейсы Torznab/torrent сохранены для будущих модулей, движок в APK не встроен.

@@ -1,0 +1,49 @@
+
+ru.familycinema.app.FamilyFlowTest:
+Error in nativeFamilyFlowFullscreenRotationAndResume(ru.familycinema.app.FamilyFlowTest):
+java.lang.SecurityException: Injecting to another application requires INJECT_EVENTS permission
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:2373)
+	at android.os.Parcel.createException(Parcel.java:2357)
+	at android.os.Parcel.readException(Parcel.java:2340)
+	at android.os.Parcel.readException(Parcel.java:2282)
+	at android.hardware.input.IInputManager$Stub$Proxy.injectInputEvent(IInputManager.java:946)
+	at android.hardware.input.InputManager.injectInputEvent(InputManager.java:907)
+	at android.app.Instrumentation.sendKeySync(Instrumentation.java:1073)
+	at android.app.Instrumentation.sendKeyDownUpSync(Instrumentation.java:1083)
+	at ru.familycinema.app.FamilyFlowTest.key(FamilyFlowTest.kt:110)
+	at ru.familycinema.app.FamilyFlowTest.nativeFamilyFlowFullscreenRotationAndResume(FamilyFlowTest.kt:324)
+	... 54 trimmed
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.input.InputManagerService.injectInputEventInternal(InputManagerService.java:669)
+	at com.android.server.input.InputManagerService.injectInputEvent(InputManagerService.java:643)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:430)
+	at android.os.Binder.execTransactInternal(Binder.java:1154)
+	at android.os.Binder.execTransact(Binder.java:1123)
+
+
+
+Time: 147.813
+There was 1 failure:
+1) nativeFamilyFlowFullscreenRotationAndResume(ru.familycinema.app.FamilyFlowTest)
+java.lang.SecurityException: Injecting to another application requires INJECT_EVENTS permission
+	at android.os.Parcel.createExceptionOrNull(Parcel.java:2373)
+	at android.os.Parcel.createException(Parcel.java:2357)
+	at android.os.Parcel.readException(Parcel.java:2340)
+	at android.os.Parcel.readException(Parcel.java:2282)
+	at android.hardware.input.IInputManager$Stub$Proxy.injectInputEvent(IInputManager.java:946)
+	at android.hardware.input.InputManager.injectInputEvent(InputManager.java:907)
+	at android.app.Instrumentation.sendKeySync(Instrumentation.java:1073)
+	at android.app.Instrumentation.sendKeyDownUpSync(Instrumentation.java:1083)
+	at ru.familycinema.app.FamilyFlowTest.key(FamilyFlowTest.kt:110)
+	at ru.familycinema.app.FamilyFlowTest.nativeFamilyFlowFullscreenRotationAndResume(FamilyFlowTest.kt:324)
+	... 54 trimmed
+Caused by: android.os.RemoteException: Remote stack trace:
+	at com.android.server.input.InputManagerService.injectInputEventInternal(InputManagerService.java:669)
+	at com.android.server.input.InputManagerService.injectInputEvent(InputManagerService.java:643)
+	at android.hardware.input.IInputManager$Stub.onTransact(IInputManager.java:430)
+	at android.os.Binder.execTransactInternal(Binder.java:1154)
+	at android.os.Binder.execTransact(Binder.java:1123)
+
+
+FAILURES!!!
+Tests run: 1,  Failures: 1

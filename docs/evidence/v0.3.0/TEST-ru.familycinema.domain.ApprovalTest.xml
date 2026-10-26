@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ru.familycinema.domain.ApprovalTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2026-10-26T05:44:35" hostname="88f5475bd05f" time="0.062">
+  <properties/>
+  <testcase name="exactVersionIsApproved" classname="ru.familycinema.domain.ApprovalTest" time="0.019"/>
+  <testcase name="changedSourceIsNotApproved" classname="ru.familycinema.domain.ApprovalTest" time="0.001"/>
+  <testcase name="changedDigestIsNotApproved" classname="ru.familycinema.domain.ApprovalTest" time="0.0"/>
+  <testcase name="otherEpisodeNeedsApproval" classname="ru.familycinema.domain.ApprovalTest" time="0.0"/>
+  <testcase name="emptyCatalogFailsClosed" classname="ru.familycinema.domain.ApprovalTest" time="0.002"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

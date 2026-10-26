@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ru.familycinema.sources.AddonProtocolTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2026-10-26T05:44:48" hostname="88f5475bd05f" time="0.075">
+  <properties/>
+  <testcase name="rejectsUnsafeEndpoints" classname="ru.familycinema.sources.AddonProtocolTest" time="0.02"/>
+  <testcase name="searchParsesResultsAndEncodesRussian" classname="ru.familycinema.sources.AddonProtocolTest" time="0.047"/>
+  <testcase name="streamsRemainUntrustedCandidates" classname="ru.familycinema.sources.AddonProtocolTest" time="0.005"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

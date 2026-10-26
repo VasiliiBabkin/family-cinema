@@ -1,0 +1,132 @@
+{
+  "version": "0.3.0",
+  "source_commit": "a118c2b7edcff0ced8075560f2d7ad2c5bda2b1e",
+  "jvm": [
+    {
+      "suite": "ru.familycinema.domain.ApprovalTest",
+      "tests": 5,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-10-26T05:44:35"
+    },
+    {
+      "suite": "ru.familycinema.sources.PolicySecurityTest",
+      "tests": 7,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-10-26T05:44:50"
+    },
+    {
+      "suite": "ru.familycinema.sources.AddonProtocolTest",
+      "tests": 3,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-10-26T05:44:48"
+    },
+    {
+      "suite": "ru.familycinema.sources.LiveProtocolTest",
+      "tests": 1,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-10-26T05:44:48"
+    },
+    {
+      "suite": "ru.familycinema.parental.PinHasherTest",
+      "tests": 2,
+      "failures": 0,
+      "errors": 0,
+      "skipped": 0,
+      "timestamp": "2026-10-26T05:44:45"
+    }
+  ],
+  "jvm_total": 18,
+  "backend": {
+    "passed": 22,
+    "warnings": 1
+  },
+  "android": [
+    {
+      "file": "phone-final-upgrade-seed.txt",
+      "tests": 1,
+      "seconds": 24.331
+    },
+    {
+      "file": "phone-final-upgrade-verify.txt",
+      "tests": 1,
+      "seconds": 37.483
+    },
+    {
+      "file": "phone-final-room.txt",
+      "tests": 2,
+      "seconds": 5.079
+    },
+    {
+      "file": "phone-final-flow.txt",
+      "tests": 3,
+      "seconds": 442.554
+    },
+    {
+      "file": "phone-final-player.txt",
+      "tests": 2,
+      "seconds": 393.024
+    },
+    {
+      "file": "tablet-final-flow.txt",
+      "tests": 3,
+      "seconds": 457.441
+    },
+    {
+      "file": "tablet-final-player.txt",
+      "tests": 1,
+      "seconds": 215.952
+    },
+    {
+      "file": "tv-final-main.txt",
+      "tests": 1,
+      "seconds": 279.396
+    },
+    {
+      "file": "tv-final-series.txt",
+      "tests": 1,
+      "seconds": 110.301
+    },
+    {
+      "file": "tv-final-player.txt",
+      "tests": 1,
+      "seconds": 259.246
+    },
+    {
+      "file": "tv-source-editor-regression.txt",
+      "tests": 1,
+      "seconds": 88.569
+    },
+    {
+      "file": "tv-card-fit.txt",
+      "tests": 1,
+      "seconds": 87.222
+    }
+  ],
+  "android_total_executions": 18,
+  "scope": "TV main/source/series/player precede only final TV card geometry correction; final layout, phone/tablet/data tests use frozen final APK. No physical ARM64 runtime or production Android network proof.",
+  "artifacts": [
+    {
+      "file": "family-cinema-v0.3.0-arm64-v8a-debug.apk",
+      "size_bytes": 21216663,
+      "sha256": "bf76c476b0c232193c385a9eac99dcb74684beb1ff202473aa17232cb1e9c719",
+      "signature": "verified",
+      "drive_roundtrip_verified": true
+    },
+    {
+      "file": "family-cinema-v0.3.0-universal-debug.apk",
+      "size_bytes": 21266736,
+      "sha256": "d1c4241571e5a54ac23f74caaa0295acadc04ea7f0c5ed3b698c81d1249fe5a4",
+      "signature": "verified",
+      "drive_roundtrip_verified": true
+    }
+  ],
+  "actions_runs": 0
+}

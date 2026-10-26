@@ -1,0 +1,6 @@
+
+ru.familycinema.app.FamilyFlowTest:..
+
+Time: 393.024
+
+OK (2 tests)

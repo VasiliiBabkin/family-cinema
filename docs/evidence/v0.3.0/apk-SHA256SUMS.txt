@@ -1,0 +1,2 @@
+bf76c476b0c232193c385a9eac99dcb74684beb1ff202473aa17232cb1e9c719  family-cinema-v0.3.0-arm64-v8a-debug.apk
+d1c4241571e5a54ac23f74caaa0295acadc04ea7f0c5ed3b698c81d1249fe5a4  family-cinema-v0.3.0-universal-debug.apk

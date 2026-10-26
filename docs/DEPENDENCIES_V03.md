@@ -7,6 +7,9 @@
 | Kotlin / Compose compiler | 2.0.21 | Apache-2.0 | Сохранены |
 | Compose BOM | 2024.12.01 | Apache-2.0 | Нативные компоненты/фокус, сохранён стиль 0.2 |
 | AndroidX Media3 | 1.5.1 | Apache-2.0 | Существующий проверенный плеер сохранён |
+| AndroidX Activity Compose | 1.9.3 | Apache-2.0 | Activity/Compose integration |
+| AndroidX Lifecycle | 2.8.7 | Apache-2.0 | ViewModel и lifecycle-aware UI |
+| kotlinx.coroutines | 1.9.0 | Apache-2.0 | Отмена foreground операций, Room и состояние |
 | Room | 2.7.2 | Apache-2.0 | Локальная БД, DAO, транзакции, экспорт схем и миграции |
 | KSP | 2.0.21-1.0.28 | Apache-2.0 | Генерация Room без собственного SQLite ORM |
 | OkHttp | 4.12.0 | Apache-2.0 | HTTPS, проверяющий DNS-resolver, запрет redirect, таймауты и лимиты |
@@ -34,3 +37,19 @@ GPL-код приложений-оболочек не копировался. З
 ## Почему torrent ещё не в APK
 
 Работающая проверка загрузки JNI/metadata/start/pause/stop находится в `tools/torrent-probe`; результат — в evidence. Для выпуска нужны ARM64 runtime, 16 KB pages, Android lifecycle, разрешённый torrent без опасных tracker/web-seed URL, размер/путь файлов, приоритеты частей и seek, disk quota, удаление/остановка, тесты с реальными пирами. В Cloud отсутствуют разрешённые TCP destinations для P2P; успешный Linux offline-probe не доказывает эти свойства. В UI торрент-результат явно помечен недоступным, кнопки воспроизведения нет.
+
+## Инструменты и вспомогательный backend
+
+| Зависимость | Версия | Лицензия / область |
+| --- | --- | --- |
+| JUnit | 4.13.2 | EPL-1.0, только тесты |
+| AndroidX Test runner / ext JUnit | 1.6.2 / 1.2.1 | Apache-2.0, test APK |
+| Espresso core | 3.5.0 | Apache-2.0, только test APK; зафиксирована версия уже используемого Compose test runtime. Lint сообщает о доступном обновлении 3.5.1 |
+| MockWebServer | 4.12.0 | Apache-2.0, JVM-тесты |
+| FastAPI | 0.162.0 | MIT, отдельный backend |
+| Uvicorn | 0.54.0 | BSD-3-Clause, отдельный backend |
+| Pydantic | 2.14.1 | MIT, отдельный backend |
+| HTTPX | 0.28.1 | BSD-3-Clause, backend/tests |
+| pytest | 9.1.1 | MIT, backend tests |
+
+Точное resolved дерево Android-зависимостей: [android-dependencies.txt](evidence/v0.3.0/android-dependencies.txt). FFmpeg/libx264 используется как отдельный установленный инструмент генерации собственного тестового видео, не линкуется и не включается в APK. Это не внедрение GPL-кода в приложение.

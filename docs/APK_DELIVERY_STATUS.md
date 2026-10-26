@@ -1,15 +1,14 @@
-# Доставка 0.2.0
+# Доставка 0.3.0
 
-Статус текущего APK: **PASS**. Google Drive доступен через подключённый коннектор; по разрешению владельца создана приватная папка Family Cinema. APK загружен, метаданные размера прочитаны, файл скачан обратно через коннектор и проверен локально. Размер 20 169 357 байт, SHA-256 `9f8d4e7b55908264591f18aad3b109c1d4612e6003a4f7a82a2f7bd0b8ab9080` совпадает с оригиналом сборки и QA.md. Подпись скачанного APK действительна. В permission metadata только владелец; публичный доступ не включался.
+Оба итоговых Cloud APK обновлены в согласованной приватной папке Family Cinema. Публичный доступ не включался, metadata показывает только owner. Private Drive URL/ID содержатся только в игнорируемых receipts `artifacts/delivery-v03/delivery.json` и `artifacts/delivery-v03-universal/delivery.json` и сообщаются владельцу непосредственно.
 
-Приватные Drive ID и ссылки находятся в исключённом из Git `artifacts/delivery-final/delivery.json` и передаются владельцу в итоговом ответе. Конфигурация папки сохранена отдельно в `artifacts/delivery/drive-config.json`; секретов в исходниках нет. Старые APK не удалялись.
+| APK | Размер, байт | SHA-256 |
+| --- | ---: | --- |
+| ARM64 debug | 21216663 | `bf76c476b0c232193c385a9eac99dcb74684beb1ff202473aa17232cb1e9c719` |
+| Universal debug | 21266736 | `d1c4241571e5a54ac23f74caaa0295acadc04ea7f0c5ed3b698c81d1249fe5a4` |
 
-## Воспроизводимая доступная часть
+VersionName 0.3.0 / code 3; apksigner PASS. Сертификат совпадает с настоящим APK 0.2.0. ARM64 содержит только arm64-v8a native libraries; universal — arm64-v8a, armeabi-v7a, x86, x86_64. DEX обоих APK идентичны. Упаковка ABI не равна проверке физического ARM64 runtime.
 
-1. Сборка и тесты выполняются в Codex Cloud, без GitHub Actions.
-2. `scripts/prepare-apk-delivery.py` проверяет подпись/версию и готовит именованный APK, SHA256SUMS.txt и receipt. Без подтверждённой загрузки он оставляет Drive status BLOCKED.
-3. Разрешённый Google Drive connector загружает абсолютный путь к подготовленному APK в согласованную папку. После загрузки обязательно прочитать метаданные/permissions.
-4. Скачать полный исходный APK обратно через `fetch(download_raw_file=True, include_base64=False)`. Если возвращён sediment://file_..., материализовать через разрешённый download_file, не запрашивая inline base64.
-5. Передать полученный локальный путь скрипту с `--verify-roundtrip`, наблюдавшиеся `--drive-file-id`, `--drive-folder-id` и `--drive-url`. Только совпадение SHA-256/размера переводит receipt в PASS. Приватные идентификаторы не выводятся в публичный build log.
+Для каждого файла выполнены: замена bytes → metadata/permissions readback → настоящее скачивание → совпадение размера и SHA-256. Размер сам по себе не принимался за доказательство. Старые кандидатные bytes заменены, ссылки сохранены. [ARM64 readback](evidence/v0.3.0/apk-drive-readback.txt), [universal readback](evidence/v0.3.0/apk-universal-drive-readback.txt), [подпись](evidence/v0.3.0/apk-signature.txt), [суммы](evidence/v0.3.0/apk-SHA256SUMS.txt), [ABI](evidence/v0.3.0/abi-validation.txt).
 
-Загрузка в этой задаче реально выполнена коннектором, а не имитацией CLI. Headless OAuth/service-account uploader и автоматический post-build hook не реализованы: они требуют отдельно разрешённой runtime-интеграции. Подключённого Drive было достаточно для доставки без выдачи или сохранения токенов. Для новой среды нужно подключить Google Drive владельца и иметь право добавления файлов в согласованную папку; при отсутствии доступа оставить BLOCKED и выдать локальный пакет.
+Статус функций/испытаний — в [QA](../QA.md). Это debug APK для испытаний, не Play/production signing. Для следующих обновлений нужен тот же signing key либо корректная ротация. Ключи не публикуются в репозитории. GitHub Actions не использовались.

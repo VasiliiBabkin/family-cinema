@@ -1,0 +1,18 @@
+Verifies
+Verified using v1 scheme (JAR signing): false
+Verified using v2 scheme (APK Signature Scheme v2): true
+Verified using v3 scheme (APK Signature Scheme v3): false
+Verified using v3.1 scheme (APK Signature Scheme v3.1): false
+Verified using v4 scheme (APK Signature Scheme v4): false
+Verified for SourceStamp: false
+Number of signers: 1
+{
+  "version": "0.3.0",
+  "target": "universal",
+  "variant": "debug",
+  "file": "family-cinema-v0.3.0-universal-debug.apk",
+  "size_bytes": 21266736,
+  "sha256": "d1c4241571e5a54ac23f74caaa0295acadc04ea7f0c5ed3b698c81d1249fe5a4",
+  "signature": "verified",
+  "drive_status": "PASS"
+}

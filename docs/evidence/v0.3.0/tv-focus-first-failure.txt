@@ -1,0 +1,151 @@
+
+ru.familycinema.app.FlowV03Test:.
+Error in nativeLibraryImportApprovalSearchPlaybackAndPolicy(ru.familycinema.app.FlowV03Test):
+java.lang.IllegalStateException:
+   FocusRequester is not initialized. Here are some possible fixes:
+
+   1. Remember the FocusRequester: val focusRequester = remember { FocusRequester() }
+   2. Did you forget to add a Modifier.focusRequester() ?
+   3. Are you attempting to request focus during composition? Focus requests should be made in
+   response to some event. Eg Modifier.clickable { focusRequester.requestFocus() }
+
+	at androidx.compose.ui.focus.FocusRequester.findFocusTargetNode$ui_release(FocusRequester.kt:254)
+	at androidx.compose.ui.focus.FocusRequester.focus$ui_release(FocusRequester.kt:67)
+	at androidx.compose.ui.focus.FocusRequester.requestFocus(FocusRequester.kt:63)
+	at ru.familycinema.app.ui.DesignSystemKt$initialFocus$1$1.invokeSuspend(DesignSystem.kt:152)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at androidx.compose.ui.test.ApplyingContinuationInterceptor$SendApplyContinuation.resumeWith(ApplyingContinuationInterceptor.kt:65)
+	at androidx.compose.ui.test.FrameDeferringContinuationInterceptor$TrampolinedTask.resume(FrameDeferringContinuationInterceptor.jvm.kt:137)
+	at androidx.compose.ui.test.FrameDeferringContinuationInterceptor.runWithoutResumingCoroutines(FrameDeferringContinuationInterceptor.jvm.kt:75)
+	at androidx.compose.ui.test.TestMonotonicFrameClock.performFrame(TestMonotonicFrameClock.jvm.kt:132)
+	at androidx.compose.ui.test.TestMonotonicFrameClock.access$performFrame(TestMonotonicFrameClock.jvm.kt:53)
+	at androidx.compose.ui.test.TestMonotonicFrameClock$withFrameNanos$2$1$2.invokeSuspend(TestMonotonicFrameClock.jvm.kt:110)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.DispatchedTaskKt.resume(DispatchedTask.kt:221)
+	at kotlinx.coroutines.DispatchedTaskKt.dispatch(DispatchedTask.kt:154)
+	at kotlinx.coroutines.CancellableContinuationImpl.dispatchResume(CancellableContinuationImpl.kt:470)
+	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core(CancellableContinuationImpl.kt:504)
+	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core$default(CancellableContinuationImpl.kt:493)
+	at kotlinx.coroutines.CancellableContinuationImpl.resumeUndispatched(CancellableContinuationImpl.kt:596)
+	at kotlinx.coroutines.test.CancellableContinuationRunnable.run(TestDispatcher.kt:60)
+	at kotlinx.coroutines.test.TestDispatcher.processEvent$kotlinx_coroutines_test(TestDispatcher.kt:24)
+	at kotlinx.coroutines.test.TestCoroutineScheduler.runCurrent(TestCoroutineScheduler.kt:132)
+	at androidx.compose.ui.test.AbstractMainTestClock$advanceDispatcher$1.invoke(AbstractMainTestClock.jvm.kt:72)
+	at androidx.compose.ui.test.AbstractMainTestClock$advanceDispatcher$1.invoke(AbstractMainTestClock.jvm.kt:65)
+	at androidx.compose.ui.test.AndroidSynchronization_androidKt.runOnUiThread(AndroidSynchronization.android.kt:33)
+	at androidx.compose.ui.test.MainTestClockImpl$1.invoke(MainTestClockImpl.android.kt:29)
+	at androidx.compose.ui.test.MainTestClockImpl$1.invoke(MainTestClockImpl.android.kt:29)
+	at androidx.compose.ui.test.AbstractMainTestClock.advanceDispatcher(AbstractMainTestClock.jvm.kt:65)
+	at androidx.compose.ui.test.AbstractMainTestClock.advanceTimeByFrame(AbstractMainTestClock.jvm.kt:36)
+	at androidx.compose.ui.test.ComposeIdlingResource.isIdleNow(ComposeIdlingResource.android.kt:73)
+	at androidx.compose.ui.test.IdlingResourceRegistry.areAllResourcesIdle(IdlingResourceRegistry.jvm.kt:122)
+	at androidx.compose.ui.test.IdlingResourceRegistry.isIdleOrEnsurePolling$ui_test_release(IdlingResourceRegistry.jvm.kt:101)
+	at androidx.compose.ui.test.EspressoLink.isIdleNow(EspressoLink.android.kt:44)
+	at androidx.test.espresso.base.IdlingResourceRegistry.allResourcesAreIdle(IdlingResourceRegistry.java:4)
+	at androidx.test.espresso.base.IdlingResourceRegistry$6.isIdleNow(IdlingResourceRegistry.java:1)
+	at androidx.test.espresso.base.UiControllerImpl.loopMainThreadUntilIdle(UiControllerImpl.java:10)
+	at androidx.test.espresso.Espresso$1.run(Espresso.java:1)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:462)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at android.os.Handler.handleCallback(Handler.java:938)
+	at android.os.Handler.dispatchMessage(Handler.java:99)
+	at android.os.Looper.loop(Looper.java:223)
+	at android.app.ActivityThread.main(ActivityThread.java:7656)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)
+	Suppressed: java.lang.IllegalStateException: uncancelled requests present
+		at androidx.compose.foundation.gestures.BringIntoViewRequestPriorityQueue.cancelAndRemoveAll(BringIntoViewRequestPriorityQueue.kt:135)
+		at androidx.compose.foundation.gestures.ContentInViewNode$launchAnimation$2.invokeSuspend(ContentInViewNode.kt:296)
+		at androidx.compose.foundation.gestures.ContentInViewNode$launchAnimation$2.invoke(Unknown Source:8)
+		at androidx.compose.foundation.gestures.ContentInViewNode$launchAnimation$2.invoke(Unknown Source:4)
+		at kotlinx.coroutines.intrinsics.UndispatchedKt.startCoroutineUndispatched(Undispatched.kt:20)
+		at kotlinx.coroutines.CoroutineStart.invoke(CoroutineStart.kt:360)
+		at kotlinx.coroutines.AbstractCoroutine.start(AbstractCoroutine.kt:124)
+		at kotlinx.coroutines.BuildersKt__Builders_commonKt.launch(Builders.common.kt:52)
+		at kotlinx.coroutines.BuildersKt.launch(Unknown Source:1)
+		at kotlinx.coroutines.BuildersKt__Builders_commonKt.launch$default(Builders.common.kt:43)
+		at kotlinx.coroutines.BuildersKt.launch$default(Unknown Source:1)
+		at androidx.compose.foundation.gestures.ContentInViewNode.launchAnimation(ContentInViewNode.kt:190)
+		at androidx.compose.foundation.gestures.ContentInViewNode.access$launchAnimation(ContentInViewNode.kt:67)
+		at androidx.compose.foundation.gestures.ContentInViewNode.bringChildIntoView(ContentInViewNode.kt:136)
+		at androidx.compose.foundation.relocation.BringIntoViewResponderNode$bringChildIntoView$2$1.invokeSuspend(BringIntoViewResponder.kt:196)
+		... 41 more
+
+
+Time: 217.267
+There was 1 failure:
+1) nativeLibraryImportApprovalSearchPlaybackAndPolicy(ru.familycinema.app.FlowV03Test)
+java.lang.IllegalStateException:
+   FocusRequester is not initialized. Here are some possible fixes:
+
+   1. Remember the FocusRequester: val focusRequester = remember { FocusRequester() }
+   2. Did you forget to add a Modifier.focusRequester() ?
+   3. Are you attempting to request focus during composition? Focus requests should be made in
+   response to some event. Eg Modifier.clickable { focusRequester.requestFocus() }
+
+	at androidx.compose.ui.focus.FocusRequester.findFocusTargetNode$ui_release(FocusRequester.kt:254)
+	at androidx.compose.ui.focus.FocusRequester.focus$ui_release(FocusRequester.kt:67)
+	at androidx.compose.ui.focus.FocusRequester.requestFocus(FocusRequester.kt:63)
+	at ru.familycinema.app.ui.DesignSystemKt$initialFocus$1$1.invokeSuspend(DesignSystem.kt:152)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at androidx.compose.ui.test.ApplyingContinuationInterceptor$SendApplyContinuation.resumeWith(ApplyingContinuationInterceptor.kt:65)
+	at androidx.compose.ui.test.FrameDeferringContinuationInterceptor$TrampolinedTask.resume(FrameDeferringContinuationInterceptor.jvm.kt:137)
+	at androidx.compose.ui.test.FrameDeferringContinuationInterceptor.runWithoutResumingCoroutines(FrameDeferringContinuationInterceptor.jvm.kt:75)
+	at androidx.compose.ui.test.TestMonotonicFrameClock.performFrame(TestMonotonicFrameClock.jvm.kt:132)
+	at androidx.compose.ui.test.TestMonotonicFrameClock.access$performFrame(TestMonotonicFrameClock.jvm.kt:53)
+	at androidx.compose.ui.test.TestMonotonicFrameClock$withFrameNanos$2$1$2.invokeSuspend(TestMonotonicFrameClock.jvm.kt:110)
+	at kotlin.coroutines.jvm.internal.BaseContinuationImpl.resumeWith(ContinuationImpl.kt:33)
+	at kotlinx.coroutines.DispatchedTaskKt.resume(DispatchedTask.kt:221)
+	at kotlinx.coroutines.DispatchedTaskKt.dispatch(DispatchedTask.kt:154)
+	at kotlinx.coroutines.CancellableContinuationImpl.dispatchResume(CancellableContinuationImpl.kt:470)
+	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core(CancellableContinuationImpl.kt:504)
+	at kotlinx.coroutines.CancellableContinuationImpl.resumeImpl$kotlinx_coroutines_core$default(CancellableContinuationImpl.kt:493)
+	at kotlinx.coroutines.CancellableContinuationImpl.resumeUndispatched(CancellableContinuationImpl.kt:596)
+	at kotlinx.coroutines.test.CancellableContinuationRunnable.run(TestDispatcher.kt:60)
+	at kotlinx.coroutines.test.TestDispatcher.processEvent$kotlinx_coroutines_test(TestDispatcher.kt:24)
+	at kotlinx.coroutines.test.TestCoroutineScheduler.runCurrent(TestCoroutineScheduler.kt:132)
+	at androidx.compose.ui.test.AbstractMainTestClock$advanceDispatcher$1.invoke(AbstractMainTestClock.jvm.kt:72)
+	at androidx.compose.ui.test.AbstractMainTestClock$advanceDispatcher$1.invoke(AbstractMainTestClock.jvm.kt:65)
+	at androidx.compose.ui.test.AndroidSynchronization_androidKt.runOnUiThread(AndroidSynchronization.android.kt:33)
+	at androidx.compose.ui.test.MainTestClockImpl$1.invoke(MainTestClockImpl.android.kt:29)
+	at androidx.compose.ui.test.MainTestClockImpl$1.invoke(MainTestClockImpl.android.kt:29)
+	at androidx.compose.ui.test.AbstractMainTestClock.advanceDispatcher(AbstractMainTestClock.jvm.kt:65)
+	at androidx.compose.ui.test.AbstractMainTestClock.advanceTimeByFrame(AbstractMainTestClock.jvm.kt:36)
+	at androidx.compose.ui.test.ComposeIdlingResource.isIdleNow(ComposeIdlingResource.android.kt:73)
+	at androidx.compose.ui.test.IdlingResourceRegistry.areAllResourcesIdle(IdlingResourceRegistry.jvm.kt:122)
+	at androidx.compose.ui.test.IdlingResourceRegistry.isIdleOrEnsurePolling$ui_test_release(IdlingResourceRegistry.jvm.kt:101)
+	at androidx.compose.ui.test.EspressoLink.isIdleNow(EspressoLink.android.kt:44)
+	at androidx.test.espresso.base.IdlingResourceRegistry.allResourcesAreIdle(IdlingResourceRegistry.java:4)
+	at androidx.test.espresso.base.IdlingResourceRegistry$6.isIdleNow(IdlingResourceRegistry.java:1)
+	at androidx.test.espresso.base.UiControllerImpl.loopMainThreadUntilIdle(UiControllerImpl.java:10)
+	at androidx.test.espresso.Espresso$1.run(Espresso.java:1)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:462)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at android.os.Handler.handleCallback(Handler.java:938)
+	at android.os.Handler.dispatchMessage(Handler.java:99)
+	at android.os.Looper.loop(Looper.java:223)
+	at android.app.ActivityThread.main(ActivityThread.java:7656)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)
+	Suppressed: java.lang.IllegalStateException: uncancelled requests present
+		at androidx.compose.foundation.gestures.BringIntoViewRequestPriorityQueue.cancelAndRemoveAll(BringIntoViewRequestPriorityQueue.kt:135)
+		at androidx.compose.foundation.gestures.ContentInViewNode$launchAnimation$2.invokeSuspend(ContentInViewNode.kt:296)
+		at androidx.compose.foundation.gestures.ContentInViewNode$launchAnimation$2.invoke(Unknown Source:8)
+		at androidx.compose.foundation.gestures.ContentInViewNode$launchAnimation$2.invoke(Unknown Source:4)
+		at kotlinx.coroutines.intrinsics.UndispatchedKt.startCoroutineUndispatched(Undispatched.kt:20)
+		at kotlinx.coroutines.CoroutineStart.invoke(CoroutineStart.kt:360)
+		at kotlinx.coroutines.AbstractCoroutine.start(AbstractCoroutine.kt:124)
+		at kotlinx.coroutines.BuildersKt__Builders_commonKt.launch(Builders.common.kt:52)
+		at kotlinx.coroutines.BuildersKt.launch(Unknown Source:1)
+		at kotlinx.coroutines.BuildersKt__Builders_commonKt.launch$default(Builders.common.kt:43)
+		at kotlinx.coroutines.BuildersKt.launch$default(Unknown Source:1)
+		at androidx.compose.foundation.gestures.ContentInViewNode.launchAnimation(ContentInViewNode.kt:190)
+		at androidx.compose.foundation.gestures.ContentInViewNode.access$launchAnimation(ContentInViewNode.kt:67)
+		at androidx.compose.foundation.gestures.ContentInViewNode.bringChildIntoView(ContentInViewNode.kt:136)
+		at androidx.compose.foundation.relocation.BringIntoViewResponderNode$bringChildIntoView$2$1.invokeSuspend(BringIntoViewResponder.kt:196)
+		... 41 more
+
+FAILURES!!!
+Tests run: 2,  Failures: 1

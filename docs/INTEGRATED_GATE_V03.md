@@ -1,3 +1,5 @@
+> Актуализация 0.3.0: обязательный backend из этого прежнего документа отменён. Главный контракт — [ARCHITECTURE_ANDROID_FIRST_V03.md](ARCHITECTURE_ANDROID_FIRST_V03.md); фактическая реализация и испытания — [ARCHITECTURE.md](ARCHITECTURE.md) и [QA](../QA.md). Android не требует домашнего сервера.
+
 > **Superseded for architecture:** This document originally assumed a mandatory PostgreSQL/backend deployment. The accepted design is Android-first with no mandatory server. See [ARCHITECTURE_ANDROID_FIRST_V03.md](ARCHITECTURE_ANDROID_FIRST_V03.md). Treat PostgreSQL and backend authorization tasks below as optional future integrations, not release gates.
 
 # Integrated implementation gate — Family Cinema 0.3

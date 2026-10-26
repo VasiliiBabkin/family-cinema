@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="ru.familycinema.sources.LiveProtocolTest" tests="1" skipped="0" failures="0" errors="0" timestamp="2026-10-26T05:44:48" hostname="88f5475bd05f" time="1.721">
+  <properties/>
+  <testcase name="actualHostedManifestSearchMetadataStreamAndBytes" classname="ru.familycinema.sources.LiveProtocolTest" time="1.721"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

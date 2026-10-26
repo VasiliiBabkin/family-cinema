@@ -1,89 +1,93 @@
-# QA — Family Cinema 0.2.0, Player & Native UX
+# Family Cinema 0.3.0 — испытания и границы готовности
 
-Проверки выполнены в Codex Cloud 2026-10-25, без запуска GitHub Actions. Это проверенный debug-кандидат для испытаний; полная готовность PROJECT_CONTRACT.md и публикация в магазине не заявляются. Исторический отчёт: [0.1.0](docs/qa/v0.1.0.md).
+2026-10-25/26 UTC. [PR #2](https://github.com/VasiliiBabkin/family-cinema/pull/2), ветка `codex/player-fullscreen-0.2`, основание — PR #1 / `codex/stage-1-foundation`. Android-first развитие существующего приложения: Room и private storage работают без сервера. [Отчёт 0.2](docs/qa/v0.2.0.md) сохранён.
 
-## APK и доставка
+## Критерии пользователя
 
-- Package `ru.familycinema.app`, versionName **0.2.0**, versionCode **2**.
-- Universal mobile/tablet/TV, minSdk 26, target/compileSdk 35. Размер **20 169 357 байт**.
-- SHA-256: `9f8d4e7b55908264591f18aad3b109c1d4612e6003a4f7a82a2f7bd0b8ab9080`.
-- Локальный артефакт: `artifacts/delivery-final/family-cinema-v0.2.0-universal-debug.apk`; оригинал `app/build/outputs/apk/debug/app-debug.apk`.
-- Debug-подпись APK Signature Scheme v2: [проверка](docs/evidence/v0.2.0/apk-signature.txt). Ключ не коммитится; для магазина нужна отдельная release-подпись.
-- **Drive PASS**: реальная загрузка в приватную папку, чтение размера/permissions, скачивание полного APK обратно, совпадение размера и SHA-256, действительная подпись. [Readback](docs/evidence/v0.2.0/delivery-readback.txt), [механизм](docs/APK_DELIVERY_STATUS.md). Приватные URL/ID переданы владельцу отдельно и хранятся только в игнорируемом receipt. Только owner permission, публичный доступ не включён. Предыдущий кандидат сохранён как rc1, не удалён.
-
-## Результаты
-
-| Проверка | Результат | Свидетельство |
+| № | Сценарий | Статус |
 | --- | --- | --- |
-| Финальная сборка app + Android test APK | PASS | [build](docs/evidence/v0.2.0/build.txt) |
-| Android Lint | PASS, 0 issues | [Lint](docs/evidence/v0.2.0/android-lint.txt) |
-| JVM domain | PASS, 5 | [JUnit](docs/evidence/v0.2.0/TEST-ru.familycinema.domain.ApprovalTest.xml) |
-| JVM parental | PASS, 2 | [JUnit](docs/evidence/v0.2.0/TEST-ru.familycinema.parental.PinHasherTest.xml) |
-| Backend pytest | PASS, 9 | [JUnit](docs/evidence/v0.2.0/backend-tests.xml), [вывод](docs/evidence/v0.2.0/backend.txt) |
-| Телефон, финальный APK | PASS, 2 теста, 354.204 s | [runner](docs/evidence/v0.2.0/phone-instrumentation.txt) |
-| Планшет, финальный APK | PASS, 1 тест, 201.706 s | [runner](docs/evidence/v0.2.0/tablet-instrumentation.txt) |
-| Android TV, финальный APK | PASS, 1 тест, 230.027 s | [runner](docs/evidence/v0.2.0/tv-instrumentation.txt) |
-| Обновление 0.1.0 → 0.2.0 без очистки | PASS: legacy seed 11.968 s, verify 28.596 s | [seed](docs/evidence/v0.2.0/upgrade-legacy-seed.txt), [диск](docs/evidence/v0.2.0/upgrade-disk-checkpoint.txt), [verify](docs/evidence/v0.2.0/upgrade-verify.txt) |
-| Повреждённая скачанная копия | PASS: несовпадение отклонено, ложный PASS не создан | [негативная проверка](docs/evidence/v0.2.0/delivery-negative.txt) |
+| 1 | Установить без собственного сервера | Работает в проверенных Android-конфигурациях; ARM64 APK собран/проверен как пакет, физический ARM64 runtime не испытан |
+| 2 | Создать родительский PIN | Работает: создание/повтор, соль/PBKDF2, lockout, закрытие взрослой сессии в фоне; прежний PIN сохраняется |
+| 3 | Каталог и поиск | Частично: настоящая личная Room-медиатека, фильмы/сериалы/сезоны/эпизоды, метаданные, избранное/история; предустановленного коммерческого каталога нет |
+| 4 | Подключить источник | Частично: UI, проверка manifest и Kotlin Stremio client реализованы; production networking Android в Cloud не подтверждён |
+| 5 | Найти конкретный фильм | Частично: локальные русские/альтернативные названия, ё/е и транслитерация работают; внешний поиск зависит от провайдера, на коммерческом каталоге не испытан |
+| 6 | Реальные варианты видео | Частично: реальные личные файлы и addon streams; hosted owned-content источник проверен протокольным клиентом; torrent не воспроизводится |
+| 7 | Разрешить версию ребёнку | Работает для проверенной private copy: SHA-256/exact fingerprint, возраст, подтверждение, отзыв; запрещённые версии/эпизоды скрыты |
+| 8 | Автоодобрение | Работает для локальных файлов; частично для удалённых: OFF, подтверждение, trust/rights/age, проверенные байты, manual deny, audit. Remote требует ожидаемый SHA-256 от источника |
+| 9 | Воспроизвести | Частично: локальное Media3 воспроизведение проверено. HTTPS progressive/HLS/DASH реализованы, native online runtime не подтверждён; DRM не поддержан |
+| 10 | Продолжить с позиции | Работает: Room per-version, пауза/возврат/повторное открытие; позиция 0.2 перенесена. Родительский preview не меняет детский прогресс |
 
-JVM-тесты перезапущены с `--rerun-tasks`: проверяют изменение URI/SHA/эпизода и солёный PIN. Backend имеет одно предупреждение Starlette об устаревшем httpx TestClient, без ошибок. Это каркас: `/health` сообщает `database: not_configured`, `/catalog` пустой; APK от backend не зависит.
+## Android-проверки
 
-## Что проверяет Android-сценарий
+| Конфигурация | Новые сценарии: медиатека/серии/источники | Регрессия PIN и плеера |
+| --- | --- | --- |
+| API30 x86_64, телефон 720×1280 / 280 dpi | 3 PASS, 442.554 s | 2 PASS, 393.024 s |
+| API30 x86_64, планшет 1280×800 / 160 dpi | 3 PASS, 457.441 s | 1 PASS, 215.952 s |
+| API30 android-tv/x86, 1920×1080 / 320 dpi, uiMode television | Main: 1 PASS 279.396 s; серии: 1 PASS 110.301 s; ввод источника: 1 PASS 88.569 s | 1 PASS 259.246 s, направления D-pad/OK/Back, fullscreen/позиция/фон |
 
-`FamilyFlowTest.nativeFamilyFlowFullscreenRotationAndResume`: создание и подтверждение PIN, родительская карточка, подтверждение одобрения, детский каталог/карточка, реальное декодирование 960×540 и движение позиции Media3, fullscreen PlayerView и FIT, автоматическое скрытие всего overlay и настоящий pointer tap для возврата, pause/play и ±10 секунд, смена landscape на телефоне, принудительное пересоздание Activity с тем же объектом ExoPlayer, новый отрисованный кадр и проверка пикселя против чёрного экрана, аппаратные D-pad/OK/Back, освобождение плеера, сохранение и продолжение позиции, восстановление исходной ориентации телефона, пауза при CREATED/RESUMED, неверный PIN, успешный вход, отзыв и пустой каталог.
+Отдельный TV layout regression: 1 PASS 87.222 s — длинное название + продолжение, сравнение полной и видимой высоты карточки в обоих режимах, открытие пультом. Основные TV workflow/player проверки выполнены до последней визуальной правки высоты карточек; код плеера, политик и хранилища после них не менялся. Финальная геометрия проверена на итоговом APK, снимки каталогов обновлены. Телефон/планшет проверяются на итоговом universal APK; его DEX идентичен ARM64 APK.
 
-`pinLockoutAndParentBackgroundProtection`: закрытие родительского сеанса после фона, пять ошибок, блокировка даже правильного PIN. В TV-прогоне дополнительно проверяется настоящий `UI_MODE_TYPE_TELEVISION` и ввод PIN аппаратными Right/Down/Left/Up/OK; планшетный прогон требует smallestScreenWidth >=600 dp. Основной сценарий большинства экранов использует Compose semantics; он не заменяет полный ручной обход всех TV-экранов только пультом.
+Планшет — изменённая display-конфигурация того же AVD с smallest width ≥600 dp, настоящая отрисовка адаптивной Android-композиции. TV — отдельный системный образ. Не физические устройства и не концепт-изображения. Пользователь проверял физический смартфон только с 0.2.0.
 
-Фоновый переход проверен через реальный lifecycle ActivityScenario; уничтожение процесса Android системой отдельно не воспроизводилось. Удержание одного ExoPlayer, отвязка поверхности и release на выходе проверены сценариями/кодом; heap-профилирование не выполнено.
+### Обновление и Room на итоговой сборке
 
-Только собственный 40-секундный CC0 H.264 Baseline 960×540/AAC LC: [происхождение](docs/TEST_MEDIA.md). Для медленной программной эмуляции тест явно устанавливает активную позицию 2 s перед проверкой auto-hide; факт декодирования и движения до этого проверяется отдельно.
+- Настоящий APK 0.2.0 → seed старым кодом: 1 PASS, 24.331 s.
+- `adb install -r` итогового APK 0.3.0 → проверка: 1 PASS, 37.483 s.
+- Room migrations/policy/tamper/progress: 2 PASS, 5.079 s.
 
-## Эмуляторы и скриншоты
+Перед seed в отдельном QA-эмуляторе удалялась только новая Room DB от предыдущих испытаний: настоящий 0.2.0 её не имел. Затем старый код сохранил PIN 2468, approval и позицию 12345 мс; диск проверен до обновления. Подпись та же, данные приложения при обновлении не очищались. Новый код подтвердил прежний PIN, разрешение, перенос позиции в Room и auto OFF даже при legacy preference auto=true. Экспортированы схемы 2/3/4/5; реальные SQLite миграции 1→5 проверены отдельно. Промежуточные Room версии не выдаются за опубликованные приложения.
 
-Скриншоты снимаются `UiAutomation.takeScreenshot()` после idle непосредственно из приложения; концептуальные изображения не используются. Иллюстрация внутри UI — собственная Canvas-графика, не подмена screenshot. [Галерея](docs/screenshots/v0.2.0/README.md).
+SAF-диалог целиком не автоматизировался: тесты импортируют настоящий `content://` из отдельного Java test provider и проходят повторный PIN после фона тем же путём, что используется после picker. Provider находится только в test APK. Наличие файлового менеджера/SAF на конкретном TV не гарантируется.
 
-- Телефон: Android 11/API 30, default x86_64, Pixel 2 AVD, 720×1280, density 280.
-- Планшет: тот же AVD с реальной конфигурацией display 1280×800/density 160; Compose рендерит планшетный layout. Это изменение конфигурации эмулятора, не физический планшет и не растяжение PNG.
-- TV: отдельный настоящий образ `android-30;android-tv;x86`, профиль tv_1080p, 1920×1080/density 320, UI mode television.
-- Без KVM, TCG/SwiftShader, два CPU, 1536 MB на AVD; медленная облачная среда не подходит для оценки FPS. Анимации системы выключены в тестах; плавность на устройствах не измерена.
+Всего в итоговой сводке — **18 успешных инструментальных выполнений** (часть сценариев повторяется на разных конфигурациях, seed выполняет старый 0.2 APK). [Машиночитаемая сводка](docs/evidence/v0.3.0/test-summary.json).
 
-## Найденные проблемы и исправления
+## JVM, backend, протокол и сборка
 
-- Исходный PR #2 имел постоянно видимый выход поверх видео и не сохранял исходную ориентацию через пересоздание. Добавлены единый скрываемый слой и WindowPresentation в ViewModel.
-- Обращение к Media3 getters во время фонового пересчёта Compose могло нарушать main-thread контракт: UI теперь читает снимок состояния, создание/операции плеера выполняются на main.
-- Быстрый Back мог использовать старое состояние overlay: обработчик читает актуальное значение в момент события.
-- Новый surface после paused Activity recreation давал чёрный кадр: SurfaceHolder callback выполняет точный seek текущей позиции без создания второго плеера. Тест проверяет новый renderedFrame и пиксель.
-- На настоящем TV-образе таймер overlay в Compose не срабатывал при нативном playing=true: таймер перенесён в viewModelScope, scrubbing удерживает контролы, native snapshot синхронизируется listener/ticker.
-- Визуальная проверка реальных PNG выявила слишком длинный PIN-экран телефона, повтор заголовка, невыразительную палитру клавиатуры и прокрутку верхней части TV-деталей к начальному фокусу. PIN уплотнён с сохранением крупных целей, цвета согласованы, TV-описание сокращено с раскрытием подробностей, постер вынесен из прокрутки.
-- Одновременная заключительная загрузка двух AVD упёрлась в лимит памяти облачной среды и вызвала ANR System UI. Прогон прерван, TV остановлен, окончательные сценарии выполнены последовательно на прогретом эмуляторе; прерванный лог не учитывается как PASS.
-- Первая проверка обновления обнаружила позицию 0 при сохранённых PIN/одобрении. Для проверки исходной fixture добавлен commit-barrier и чтение позиции с диска перед установкой обновления; повторная проверка подтвердила 12345 ms на диске до обновления и сохранность PIN, одобрения и позиции после него. Это был дефект подготовки тестовых данных, а не подтверждённая потеря позиции при обновлении.
+- JVM: domain 5, parental 2, sources 11 (включая opt-in live protocol), всего 18 PASS, 0 skipped/failure/error. Все JVM задачи повторены с --rerun-tasks; даты — в XML.
+- Вспомогательный backend: 22 PASS, одно предупреждение Starlette о httpx; не вызывается APK и не нужен пользователю.
+- Android Lint: 0 ошибок, 1 предупреждение о наличии более нового тестового Espresso. 3.5.0 оставлен согласованным с существующим Compose test runtime; в APK приложения новый test dependency не добавляется.
+- Cloud Gradle сборки universal + ARM64, все модули компилируются. Actions не запускались.
+- Live protocol: настоящие hosted manifest → поиск «Тихий» → metadata → stream → байты MP4 и SHA-256. Транспорт теста ограничен raw.githubusercontent.com и использует управляемый proxy Cloud. Это **не** production Android OkHttp/DNS путь.
+- BitTorrent: отдельный настоящий Linux JNI probe jlibtorrent 2.0.12.9: metadata 22 pieces, native session start/pause/stop, loopback only, DHT/LSD/UPnP/NAT-PMP OFF. Нет peer download/Android/seek/cache проверки; движка в APK нет.
 
-Неудачные итерации не учитываются как PASS. Их логи сохранены в `artifacts/v02-*`; в публичном evidence опубликованы результаты финального APK.
+[Полные evidence](docs/evidence/v0.3.0) · [Реальные скриншоты](docs/screenshots/v0.3.0/README.md) · [Архитектура](docs/ARCHITECTURE.md) · [Зависимости/лицензии](docs/DEPENDENCIES_V03.md).
 
-## Воспроизведение проверок
+## Исправления по результатам неудачных итераций
 
-```sh
-./gradlew :app:assembleDebug :app:assembleDebugAndroidTest :app:lintDebug
-./gradlew :domain:test :parental:testDebugUnitTest --rerun-tasks
-cd backend
-../.venv/bin/python -m pytest -q --junitxml=../artifacts/v02-backend.xml
-# Из корня, на выделенном тестовом эмуляторе:
-adb -s SERIAL install -r app/build/outputs/apk/debug/app-debug.apk
-adb -s SERIAL install -r app/build/outputs/apk/androidTest/debug/app-debug-androidTest.apk
-adb -s SERIAL shell am instrument -w -e layout phone \
-  -e class ru.familycinema.app.FamilyFlowTest \
-  ru.familycinema.app.test/androidx.test.runner.AndroidJUnitRunner
-```
+- Исправлены test provider для изолированного процесса, прокрутка к вложенным кнопкам и IME action поиска.
+- Смена роли выполняется до обновления детской выборки; поздний async snapshot не возвращает взрослый каталог.
+- Отложенный TV FocusRequester обращался к detached lazy item: запрос перенесён на размещение прикреплённого элемента.
+- Назначение AnimatedContent передаётся экрану явно; исходящий экран не строит текущую форму повторно.
+- Compose password URL field на TV зацикливал recomposition при фокусе. TV использует системный защищённый EditText/IME; targeted и полный тесты прошли. Телефон/планшет остаются на Material Compose.
+- Устранён видимый обрезанный край TV-карточки: высота строки зависит от viewport, обложка занимает остаток после текста. Новый regression проверяет длинное название и resume label, а не только компиляцию.
+- Test key helpers ждут фокус окна после lifecycle resume; D-pad-тесты переводят систему из оставшегося touch mode и задают начальную кнопку, затем проверяют реальные события всех направлений и OK.
 
-Тесты FamilyFlow **очищают данные** перед каждым методом. Для tablet/tv выбрать соответствующую конфигурацию и `-e layout tablet|tv`; основной метод можно выбрать через `Class#method`. UpgradeSeedTest запускается отдельно на подписанном 0.1.0, затем 0.2.0 устанавливается с `adb install -r` без очистки и запускается UpgradeVerifyTest. Оба APK должны иметь один сертификат. Не запускайте все классы тестового пакета вперемешку: upgrade fixture предназначена для двух разных установленных версий.
+TCG без KVM и тяжёлый boot давали системные ANR до измеряемых прогонов; приложение ANR не скрывались/не принимались за успешные screenshots. Один эмулятор за раз, Gradle daemon останавливался перед UI-тестами. Неудачные значимые логи сохранены в evidence.
 
-Среда: полный JDK 21.0.8, Gradle 8.10.2, AGP 8.7.3, Kotlin 2.0.21, Android SDK 35/build-tools 34.0.0, FFmpeg libx264/DejaVu. Proxy и доверенный CA задавались параметрами среды; TLS не отключался. GitHub Actions в этой задаче не запускались; существующий workflow остаётся только manual dispatch.
+## Реально использованные источники
 
-## Объективные ограничения
+1. Личные видео через SAF/content URI → private copy. Испытания используют только собственные CC0-клипы 40 и 5 секунд.
+2. Открытый owned-content QA addon проекта в docs/qa-addon на GitHub raw — один CC0-ролик, проверен Kotlin-клиентом через Cloud proxy. Это **не каталог фильмов** и не подтверждение подключения провайдера в Android.
 
-- Один демонстрационный ролик, без настоящего каталога фильмов, поиска, P2P, torrent engine и серверной синхронизации. Будущие интерфейсы сохранены.
-- Физические телефоны, планшеты, Android TV/Google TV, OEM-пульты, TalkBack, разные font scales, HDR/HEVC/DRM/субтитры/аудиодорожки и аппаратные декодеры не проверены. Упакованные ABI не означают испытание на ARM.
-- Нет измерений производительности/heap и широкого OEM/API-матрицы; проигрывание длительных фильмов не испытано.
-- Ошибки SHA/декодирования имеют русские экраны и выход, но fault injection на финальном APK не проводился. Аудиофокус/noisy реализованы Media3, внешними звонками/наушниками не испытаны.
-- Несколько профилей, временные лимиты, восстановление PIN, Picture-in-Picture, background audio/casting не реализованы. PIN не защищает от root, очистки данных и разрешённого ADB к debug APK.
-- Production-подпись, store release hardening и автоматический headless OAuth uploader отсутствуют. Реальная доставка через подключённый Drive выполнена без сохранения токенов.
+Коммерческие каталоги, TMDB, Jellyfin и torrent-провайдеры не подключены. Нет заимствованных постеров с неподтверждёнными правами. Инструкция: [PARENT_GUIDE_V03.md](docs/PARENT_GUIDE_V03.md).
+
+## Ограничения
+
+- Полного native online end-to-end в Cloud нет: production клиент намеренно Proxy.NO_PROXY, чтобы проверенный DNS использовался реальным сокетом; Cloud разрешает HTTPS через управляемый proxy. Защита не отключалась ради зелёного теста.
+- Addon compatibility неполная: stream-only источники используются по IMDb/объявленным ID prefixes; отдельный metadata-only fallback отсутствует. Manifest с query не поддерживается, нужен стандартный конфигурационный путь manifest.json.
+- Только публичный HTTPS/443: HTTP, LAN/IP literals, redirects, произвольные auth headers/системный proxy отклоняются. Нет DRM.
+- Детям доступны проверенные самостоятельные private files. HLS/DASH пока только parent online preview; внешний UI субтитров/аудиодорожек не реализован.
+- UI нескольких детских профилей отсутствует; profile IDs подготовлены схемой. Нет PIN recovery/синхронизации/родительской отдельной истории просмотров.
+- Непроверены физические устройства/ARM64 runtime, API26/35, Android с 16 KB pages, Google TV на железе, многочасовое playback/энергия/заполнение диска. Не заявляется отсутствие всех утечек по результату коротких тестов.
+- Debuggable APK допускает adb run-as при предоставленном ADB-доступе. Нет защиты от root/очистки данных. Production signing/Play release не настроены; будущие обновления требуют сохранения того же signing key или корректного плана ротации.
+- Нет UI удаления/редактирования addon (есть disable/trust), paging/FTS, массового performance benchmark. Максимум 100 результатов remote query и 1000 эпизодов.
+- Default media quota 2 ГБ, выбор 1/2/4 ГБ, резерв 64 МБ, ручное подтверждённое удаление неразрешённых копий. Нет background download service; lock/background отменяет активные операции.
+- Часть новых диагностических строк контроллера остаётся в Kotlin; дополнительные языки не подготовлены. Несохранённые черновики форм не обещают восстановление после пересоздания.
+
+## Итоговые APK и доставка
+
+ARM64: 21 216 663 байт; SHA-256 `bf76c476b0c232193c385a9eac99dcb74684beb1ff202473aa17232cb1e9c719`.
+
+Universal: 21 266 736 байт; SHA-256 `d1c4241571e5a54ac23f74caaa0295acadc04ea7f0c5ed3b698c81d1249fe5a4`.
+
+VersionName 0.3.0 / versionCode 3, подпись apksigner PASS и совпадает с 0.2.0. ARM64: только arm64-v8a; universal: arm64-v8a/armeabi-v7a/x86/x86_64, одинаковые DEX. Оба файла обновлены в согласованной приватной папке Drive, скачаны обратно, размер/SHA-256 совпали. Публичный доступ не включён; приватные URL/ID не коммитятся. [Подтверждения](docs/APK_DELIVERY_STATUS.md), [суммы](docs/evidence/v0.3.0/apk-SHA256SUMS.txt). Это debug-выпуск для испытаний с перечисленными границами, не обещание готовности всех внешних провайдеров.

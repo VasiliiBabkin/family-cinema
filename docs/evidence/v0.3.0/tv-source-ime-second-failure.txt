@@ -1,0 +1,81 @@
+
+ru.familycinema.app.FlowV03Test:
+Error in sourceInputRemainsStableAcrossScreenTransitions(ru.familycinema.app.FlowV03Test):
+androidx.compose.ui.test.junit4.android.ComposeNotIdleException: Global time out: possibly due to compose being busy.
+IdlingResourceRegistry has the following idling resources registered:
+- [busy] ComposeIdlingResource is busy due to pending recompositions.
+         - Note: Timeout on pending recomposition means that there are most likely infinite re-compositions happening in the tested code.
+         - Debug: hadRecomposerChanges = true, hadSnapshotChanges = false, hadAwaitersOnMainClock = false
+All registered idling resources: Compose-Espresso link
+	at androidx.compose.ui.test.EspressoLink_androidKt.rethrowWithMoreInfo(EspressoLink.android.kt:136)
+	at androidx.compose.ui.test.EspressoLink_androidKt.runEspressoOnIdle(EspressoLink.android.kt:102)
+	at androidx.compose.ui.test.EspressoLink.runUntilIdle(EspressoLink.android.kt:79)
+	at androidx.compose.ui.test.AndroidComposeUiTestEnvironment.waitForIdle(ComposeUiTest.android.kt:346)
+	at androidx.compose.ui.test.AndroidComposeUiTestEnvironment.access$waitForIdle(ComposeUiTest.android.kt:219)
+	at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidTestOwner.getRoots(ComposeUiTest.android.kt:543)
+	at androidx.compose.ui.test.TestContext.getAllSemanticsNodes$ui_test_release(TestOwner.kt:86)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNodes$ui_test_release(SemanticsNodeInteraction.kt:63)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:157)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+	at androidx.compose.ui.test.ActionsKt.performSemanticsAction(Actions.kt:587)
+	at androidx.compose.ui.test.TextActionsKt.performTextInput(TextActions.kt:45)
+	at ru.familycinema.app.FlowV03Test.sourceInputRemainsStableAcrossScreenTransitions(FlowV03Test.kt:324)
+	... 54 trimmed
+Caused by: androidx.test.espresso.AppNotIdleException: Looped for 255 iterations over 60 SECONDS. The following Idle Conditions failed DYNAMIC_TASKS_HAVE_IDLED(busy resources=Compose-Espresso link).
+	at androidx.test.espresso.IdlingPolicy.handleTimeout(IdlingPolicy.java:5)
+	at androidx.test.espresso.base.UiControllerImpl.loopUntil(UiControllerImpl.java:50)
+	at androidx.test.espresso.base.UiControllerImpl.loopMainThreadUntilIdle(UiControllerImpl.java:16)
+	at androidx.test.espresso.Espresso$1.run(Espresso.java:1)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:462)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at android.os.Handler.handleCallback(Handler.java:938)
+	at android.os.Handler.dispatchMessage(Handler.java:99)
+	at android.os.Looper.loop(Looper.java:223)
+	at android.app.ActivityThread.main(ActivityThread.java:7656)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)
+
+
+Time: 136.743
+There was 1 failure:
+1) sourceInputRemainsStableAcrossScreenTransitions(ru.familycinema.app.FlowV03Test)
+androidx.compose.ui.test.junit4.android.ComposeNotIdleException: Global time out: possibly due to compose being busy.
+IdlingResourceRegistry has the following idling resources registered:
+- [busy] ComposeIdlingResource is busy due to pending recompositions.
+         - Note: Timeout on pending recomposition means that there are most likely infinite re-compositions happening in the tested code.
+         - Debug: hadRecomposerChanges = true, hadSnapshotChanges = false, hadAwaitersOnMainClock = false
+All registered idling resources: Compose-Espresso link
+	at androidx.compose.ui.test.EspressoLink_androidKt.rethrowWithMoreInfo(EspressoLink.android.kt:136)
+	at androidx.compose.ui.test.EspressoLink_androidKt.runEspressoOnIdle(EspressoLink.android.kt:102)
+	at androidx.compose.ui.test.EspressoLink.runUntilIdle(EspressoLink.android.kt:79)
+	at androidx.compose.ui.test.AndroidComposeUiTestEnvironment.waitForIdle(ComposeUiTest.android.kt:346)
+	at androidx.compose.ui.test.AndroidComposeUiTestEnvironment.access$waitForIdle(ComposeUiTest.android.kt:219)
+	at androidx.compose.ui.test.AndroidComposeUiTestEnvironment$AndroidTestOwner.getRoots(ComposeUiTest.android.kt:543)
+	at androidx.compose.ui.test.TestContext.getAllSemanticsNodes$ui_test_release(TestOwner.kt:86)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNodes$ui_test_release(SemanticsNodeInteraction.kt:63)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow(SemanticsNodeInteraction.kt:157)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchOneOrThrow$default(SemanticsNodeInteraction.kt:150)
+	at androidx.compose.ui.test.SemanticsNodeInteraction.fetchSemanticsNode(SemanticsNodeInteraction.kt:84)
+	at androidx.compose.ui.test.ActionsKt.performSemanticsAction(Actions.kt:587)
+	at androidx.compose.ui.test.TextActionsKt.performTextInput(TextActions.kt:45)
+	at ru.familycinema.app.FlowV03Test.sourceInputRemainsStableAcrossScreenTransitions(FlowV03Test.kt:324)
+	... 54 trimmed
+Caused by: androidx.test.espresso.AppNotIdleException: Looped for 255 iterations over 60 SECONDS. The following Idle Conditions failed DYNAMIC_TASKS_HAVE_IDLED(busy resources=Compose-Espresso link).
+	at androidx.test.espresso.IdlingPolicy.handleTimeout(IdlingPolicy.java:5)
+	at androidx.test.espresso.base.UiControllerImpl.loopUntil(UiControllerImpl.java:50)
+	at androidx.test.espresso.base.UiControllerImpl.loopMainThreadUntilIdle(UiControllerImpl.java:16)
+	at androidx.test.espresso.Espresso$1.run(Espresso.java:1)
+	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:462)
+	at java.util.concurrent.FutureTask.run(FutureTask.java:266)
+	at android.os.Handler.handleCallback(Handler.java:938)
+	at android.os.Handler.dispatchMessage(Handler.java:99)
+	at android.os.Looper.loop(Looper.java:223)
+	at android.app.ActivityThread.main(ActivityThread.java:7656)
+	at java.lang.reflect.Method.invoke(Native Method)
+	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:592)
+	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:947)
+
+FAILURES!!!
+Tests run: 1,  Failures: 1
